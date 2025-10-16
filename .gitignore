@@ -1,0 +1,14 @@
+.idea/
+docs/build/
+results/
+*.nlc
+*.npz
+*/__pycache__/
+*.sqlite3
+*.html
+*.csv
+*.zip
+*.pkl
+dictionary.dic
+examples/
+workspace/
