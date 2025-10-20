@@ -60,6 +60,8 @@ def load_dc_film_capacitors() -> pd.DataFrame:
     c_df["ESL_in_H"] = c_df["ESL_in_nH"].astype(float) * 1e-9
     c_df = c_df.drop(columns=["ESL_in_nH"])
 
+    c_df["i_rms_max_85degree_in_A"] = c_df["i_rms_max_85degree_in_A"].astype(float)
+
     return c_df
 
 

@@ -23,10 +23,10 @@ def power_loss_electrolyte_capacitor(current_waveform_time_amplitude_list: list,
 
     return leakage_losses + esr_losses
 
-def power_loss_film_capacitor(esr: float, frequency_list, current_amplitude_list):
+def power_loss_film_capacitor(esr: float, frequency_list, current_amplitude_list, number_parallel_capacitors: int):
     esr_losses = 0
     for count_frequency, frequency in enumerate(frequency_list):
-        esr_losses += esr * 0.5 * current_amplitude_list[count_frequency] ** 2
+        esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 
     return esr_losses
 
