@@ -8,11 +8,15 @@ from enum import IntEnum
 import numpy as np
 
 class CapacitorType(IntEnum):
+    """Enum for the capacitor type."""
+
     FilmCapacitor = 0
     ElectrolyticCapacitor = 1
 
 @dataclass
 class SelectCapacitor:
+    """Input values and boundaries for the capacitor selection."""
+
     maximum_peak_to_peak_voltage_ripple: float
     current_waveform_for_op_max_current: np.ndarray
     v_dc_for_op_max_current: float
@@ -25,5 +29,7 @@ class SelectCapacitor:
 
 @dataclass
 class CalculatedRequirementsValues:
+    """From input values calculated values or requirements."""
+
     requirement_c_min: float
     i_rms: float

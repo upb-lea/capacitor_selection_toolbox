@@ -1,3 +1,4 @@
+"""Read the capacitor database."""
 
 # python libraries
 import pathlib
@@ -19,8 +20,6 @@ def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
     :type capacitor_type_list: list[CapacitorType]
     :return:
     """
-
-
     for capacitor_type in capacitor_type_list:
         if capacitor_type == CapacitorType.FilmCapacitor:
             c_df = load_dc_film_capacitors()
@@ -28,8 +27,6 @@ def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
             raise NotImplementedError
 
     return c_df
-
-
 
 def load_dc_film_capacitors() -> pd.DataFrame:
     """

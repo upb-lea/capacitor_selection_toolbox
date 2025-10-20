@@ -1,3 +1,4 @@
+"""Misc calcualtions."""
 
 # 3rd party libraries
 import numpy as np
@@ -6,6 +7,12 @@ import numpy as np
 from cst.cst_dataclasses import SelectCapacitor, CalculatedRequirementsValues
 
 def calculate_from_requirements(capacitor_requirements: SelectCapacitor):
+    """
+    Values and requirements for further calculations needed from the input values.
+
+    :param capacitor_requirements: capacitor requirements and input values in a DTO
+    :type capacitor_requirements: SelectCapacitor
+    """
     new_time_sample_rate = np.linspace(capacitor_requirements.current_waveform_for_op_max_current[0][0],
                                        capacitor_requirements.current_waveform_for_op_max_current[0][-1], 5000)
     new_current_sample_rate = np.interp(new_time_sample_rate, capacitor_requirements.current_waveform_for_op_max_current[0],

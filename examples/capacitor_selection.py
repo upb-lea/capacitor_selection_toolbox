@@ -31,7 +31,8 @@ print(c_db.columns)
 
 
 # voltage: calculate the number of needed capacitors in a series connection
-c_db["in_series_needed"] = np.ceil(capacitor_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * (1 + capacitor_requirements.voltage_safety_margin_percentage / 100)))
+c_db["in_series_needed"] = np.ceil(capacitor_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
+                                                                                     (1 + capacitor_requirements.voltage_safety_margin_percentage / 100)))
 # drop series connection capacitors more than specified
 c_db = c_db.drop(c_db[c_db["in_series_needed"] > capacitor_requirements.maximum_number_series_capacitors].index)
 
@@ -47,8 +48,10 @@ c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
 # volume calculation
 c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-[frequency_list, current_amplitude_list, _] = cst.fft(capacitor_requirements.current_waveform_for_op_max_current, plot='no', mode='time', title='ffT input current')
-c_db.loc[:, 'power_loss_per_capacitor'] = cst.power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"])
+[frequency_list, current_amplitude_list, _] = cst.fft(capacitor_requirements.current_waveform_for_op_max_current, plot='no',
+                                                      mode='time', title='ffT input current')
+c_db.loc[:, 'power_loss_per_capacitor'] = (
+    cst.power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"]))
 c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
 

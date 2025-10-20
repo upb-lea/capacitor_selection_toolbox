@@ -1,3 +1,4 @@
+"""Capacitor selection toolbox helper functions."""
 
 # python libraries
 import logging
