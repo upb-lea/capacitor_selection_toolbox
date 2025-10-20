@@ -5,7 +5,6 @@ import logging
 
 # 3rd party libraries
 import numpy as np
-import numpy.typing as npt
 from matplotlib import pyplot as plt
 
 logger = logging.getLogger(__name__)
