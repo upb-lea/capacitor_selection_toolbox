@@ -5,11 +5,39 @@ import pathlib
 # 3rd party libraries
 import pandas as pd
 
+# own libraries
+from cst.cst_dataclasses import CapacitorType
+
+
+def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
+    """
+    Load the capacitors from the given types, e.g. film capacitors, electrolytic capacitors, ...
+
+    Returns all loaded capacitor classes in a single list.
+
+    :param capacitor_type_list: list of capacitor types to load
+    :type capacitor_type_list: list[CapacitorType]
+    :return:
+    """
+
+
+    for capacitor_type in capacitor_type_list:
+        if capacitor_type == CapacitorType.FilmCapacitor:
+            c_df = load_dc_film_capacitors()
+        elif capacitor_type == CapacitorType.ElectrolyticCapacitor:
+            raise NotImplementedError
+
+    return c_df
 
 
 
-def load_dc_film_capacitors():
+def load_dc_film_capacitors() -> pd.DataFrame:
+    """
+    Load dc film capacitors from the database.
 
+    :return: unified list of film capacitors
+    :rtype: pandas.DataFrame
+    """
     path = pathlib.Path(__file__)
     database_path = pathlib.PurePath(path.parents[0], "B3271*P.csv")
 
@@ -17,7 +45,6 @@ def load_dc_film_capacitors():
 
     # drop unused columns to reduce the data set
     c_df = c_df.drop(columns=["multiplier_1", "multiplier_2", "MOQ", "p1_in_mm"])
-    print(c_df.columns)
 
     # transfer the datasheet given units to SI units
     c_df['volume'] = c_df["width_in_mm"].astype(float) * 1e-3 * c_df["height_in_mm"].astype(float) * 1e-3 * c_df["length_in_mm"].astype(float) * 1e-3
@@ -36,12 +63,5 @@ def load_dc_film_capacitors():
     return c_df
 
 
-
-
-
-
-
-
 if __name__ == "__main__":
     load_dc_film_capacitors()
-
