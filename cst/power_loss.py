@@ -8,7 +8,7 @@
 #     equal_series_resistance = 1
 #     return equal_series_resistance
 
-def power_loss_film_capacitor(esr: float, frequency_list: list[float], current_amplitude_list: list[float], number_parallel_capacitors: int):
+def power_loss_film_capacitor(esr: float, frequency_list: list[float], current_amplitude_list: list[float], number_parallel_capacitors: int) -> float:
     """
     Film capacitor power loss estimation.
 
@@ -23,7 +23,7 @@ def power_loss_film_capacitor(esr: float, frequency_list: list[float], current_a
     :return: loss of a single capacitor in W
     :rtype: float
     """
-    esr_losses = 0
+    esr_losses = 0.0
     for count_frequency, _ in enumerate(frequency_list):
         esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 

@@ -6,7 +6,7 @@ import numpy as np
 # own libraries
 from cst.cst_dataclasses import SelectCapacitor, CalculatedRequirementsValues
 
-def calculate_from_requirements(capacitor_requirements: SelectCapacitor):
+def calculate_from_requirements(capacitor_requirements: SelectCapacitor) -> CalculatedRequirementsValues:
     """
     Values and requirements for further calculations needed from the input values.
 

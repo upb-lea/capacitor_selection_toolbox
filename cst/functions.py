@@ -10,10 +10,10 @@ from matplotlib import pyplot as plt
 
 logger = logging.getLogger(__name__)
 
-def fft(period_vector_t_i: npt.ArrayLike, sample_factor: int = 1000, plot: str = 'no', mode: str = 'rad',
+def fft(period_vector_t_i: np.ndarray, sample_factor: int = 1000, plot: str = 'no', mode: str = 'rad',
         f0: float | None = None, title: str = 'ffT', filter_type: str = 'factor',
         filter_value_factor: float = 0.01, filter_value_harmonic: int = 100,
-        figure_size: tuple = None, figure_directory: str = None) -> npt.NDArray[list]:
+        figure_size: tuple | None = None, figure_directory: str | None = None) -> np.ndarray:
     """
     Calculate the FFT for a given input signal. Input signal is in vector format and should include one period.
 
@@ -68,11 +68,12 @@ def fft(period_vector_t_i: npt.ArrayLike, sample_factor: int = 1000, plot: str =
         raise ValueError("Period vector must start with 0 seconds!")
 
     # mode pre-calculation
-    if mode == 'rad':
-        period_vector_t_i[0] = period_vector_t_i[0] / (2 * np.pi * f0)
-    elif mode == 'deg':
-        period_vector_t_i[0] = period_vector_t_i[0] / (360 * f0)
-    elif mode != 'time':
+    if f0:
+        if mode == 'rad':
+            period_vector_t_i[0] = period_vector_t_i[0] / (2 * np.pi * f0)
+        elif mode == 'deg':
+            period_vector_t_i[0] = period_vector_t_i[0] / (360 * f0)
+    if mode != 'time':
         raise ValueError("Mode not available. Choose: 'rad', 'deg', 'time'")
 
     t = period_vector_t_i[0]
@@ -96,21 +97,21 @@ def fft(period_vector_t_i: npt.ArrayLike, sample_factor: int = 1000, plot: str =
     x_mag_corrected[0] = x_mag_corrected[0] / 2
     phi_rad_corrected = phi_rad[0:int(sample_factor / 2 + 1)]
 
-    f_out = []
-    x_out = []
-    phi_rad_out = []
+    f_out = np.array([])
+    x_out = np.array([])
+    phi_rad_out = np.array([])
     if filter_type.lower() == 'factor':
         for count, _ in enumerate(x_mag_corrected):
             if x_mag_corrected[count] > filter_value_factor * max(abs(i)):
-                f_out.append(f_corrected[count])
-                x_out.append(x_mag_corrected[count])
-                phi_rad_out.append(phi_rad_corrected[count])
+                f_out = np.append(f_out, f_corrected[count])
+                x_out = np.append(x_out, x_mag_corrected[count])
+                phi_rad_out = np.append(phi_rad_out, phi_rad_corrected[count])
     elif filter_type.lower() == 'harmonic':
         for count, _ in enumerate(x_mag_corrected):
             if count < filter_value_harmonic:
-                f_out.append(f_corrected[count])
-                x_out.append(x_mag_corrected[count])
-                phi_rad_out.append(phi_rad_corrected[count])
+                f_out = np.append(f_out, f_corrected[count])
+                x_out = np.append(x_out, x_mag_corrected[count])
+                phi_rad_out = np.append(phi_rad_out, phi_rad_corrected[count])
     elif filter_type.lower() == 'disabled':
         f_out = f_corrected
         x_out = x_mag_corrected
