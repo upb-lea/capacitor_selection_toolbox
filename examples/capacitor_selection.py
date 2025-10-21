@@ -26,11 +26,27 @@ calculated_requirements_and_values = cst.calculate_from_requirements(capacitor_r
 print(calculated_requirements_and_values.requirement_c_min)
 
 # select all suitable capacitors from the database
-c_db, sh_db = cst.load_capacitors(capacitor_requirements.capacitor_type_list)
+c_db, sh_db, c_derating = cst.load_capacitors(capacitor_requirements.capacitor_type_list)
 
-print(c_db.columns)
-print(sh_db.columns)
+def look_for_derating_factor(ambient_temperature: float, df_derating: pd.DataFrame) -> float:
+    """
+    Read the capacitors temperature derating factor from a look-up table.
 
+    :param ambient_temperature: ambient temperature in degree Celsius
+    :param df_derating: dataframe with temperature derating information
+    :return: derating factor
+    """
+    derating_factor: float
+    if ambient_temperature < df_derating["temperature"][0]:
+        derating_factor = df_derating["derating_factor"][0]
+    elif ambient_temperature > df_derating["temperature"][-1]:
+        derating_factor = df_derating["derating_factor"][-1]
+    else:
+        derating_factor = np.interp(ambient_temperature, df_derating["temperature"], df_derating["derating_factor"])
+    return derating_factor
+
+
+derating_factor = look_for_derating_factor(ambient_temperature=capacitor_requirements.temperature_ambient, df_derating=c_derating)
 
 # voltage: calculate the number of needed capacitors in a series connection
 c_db["in_series_needed"] = np.ceil(capacitor_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
@@ -42,7 +58,7 @@ c_db = c_db.drop(c_db[c_db["in_series_needed"] > capacitor_requirements.maximum_
 c_db["in_parallel_needed"] = np.ceil(calculated_requirements_and_values.requirement_c_min / (c_db["capacitance"] / c_db["in_series_needed"]))
 
 # current: calculate the number of parallel capacitors needed to meet the current requirement
-c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_requirements_and_values.i_rms / c_db["i_rms_max_85degree_in_A"])
+c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_requirements_and_values.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
 index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
 c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
 c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
@@ -57,8 +73,16 @@ c_db.loc[:, 'power_loss_per_capacitor'] = (
     cst.power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"]))
 c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
-def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, height: float):
+def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, height: float) -> float:
+    """
+    Read the thermal equivalent self-heating coefficient.
 
+    :param df: dataframe with equivalent self-heating coefficient based on the capacitor housing dimensions.
+    :param width: capacitor width in meter
+    :param length: capacitor length in meter
+    :param height: capacitor height in meter
+    :return: thermal equivalent coefficient
+    """
     thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
 
     print(thermal_coefficient.values[0])
@@ -66,7 +90,7 @@ def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, 
     if len(thermal_coefficient.values) != 1:
         raise ValueError("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.")
 
-    return thermal_coefficient.values[0]
+    return float(thermal_coefficient.values[0])
 
 
 look_for_thermal_coefficient(sh_db, 22e-3, 31.5e-3, 36.5e-3)
@@ -75,9 +99,13 @@ look_for_thermal_coefficient(sh_db, 22e-3, 31.5e-3, 36.5e-3)
 c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: look_for_thermal_coefficient(sh_db, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
 c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
+# check for temperature derating
 
-print(c_db['g_in_W_degreeCelsius'])
-print(c_db["delta_temperature"])
+c_db["delta_temperature_max"] = derating_factor ** 2 * 15
+
+# drop too high self-heated capacitors
+c_db = c_db.drop(c_db[c_db["delta_temperature"] > c_db["delta_temperature_max"]].index)
+
 
 # plot the results
 plt.scatter(c_db["volume_total"] * 1e6, c_db["power_loss_total"])

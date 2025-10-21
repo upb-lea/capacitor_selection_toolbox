@@ -28,12 +28,12 @@ def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
 
     return c_df
 
-def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame]:
+def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load dc film capacitors from the database.
 
     :return: unified list of film capacitors
-    :rtype: pandas.DataFrame
+    :rtype: tuple[pandas.DataFrame, pandas.DataFrame, pandas.DataFrame]
     """
     path = pathlib.Path(__file__)
     database_path = pathlib.PurePath(path.parents[0], "B3271*P.csv")
@@ -71,7 +71,12 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame]:
     sh_df["g_in_W_degreeCelsius"] = sh_df["g_in_mW_degreeCelsius"].astype(float) * 1e-3
     sh_df = sh_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm", "g_in_mW_degreeCelsius"])
 
-    return c_df, sh_df
+    database_path = pathlib.PurePath(path.parents[0], "B3271*P_derating.csv")
+    c_derating = pd.read_csv(database_path, sep=';', decimal=',')
+
+    print(c_derating.head())
+
+    return c_df, sh_df, c_derating
 
 
 if __name__ == "__main__":
