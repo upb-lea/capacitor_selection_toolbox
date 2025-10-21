@@ -16,6 +16,8 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -
 
     :param capacitor_requirements: capacitor requirements and input values in a DTO
     :type capacitor_requirements: CapacitorRequirements
+    :return: calculated requirements and values (from input parameters)
+    :rtype: CalculatedRequirementsValues
     """
     new_time_sample_rate = np.linspace(capacitor_requirements.current_waveform_for_op_max_current[0][0],
                                        capacitor_requirements.current_waveform_for_op_max_current[0][-1], 5000)
@@ -37,8 +39,11 @@ def get_temperature_current_derating_factor(ambient_temperature: float, df_derat
     Read the capacitors temperature derating factor from a look-up table (from data sheet).
 
     :param ambient_temperature: ambient temperature in degree Celsius
+    :type ambient_temperature: float
     :param df_derating: dataframe with temperature derating information
+    :type df_derating: pd.DataFrame
     :return: derating factor
+    :rtype: float
     """
     derating_factor: float
     if ambient_temperature < df_derating["temperature"][0]:
@@ -54,10 +59,15 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
     Read the thermal equivalent heat coefficient (from data sheet).
 
     :param df: dataframe with equivalent self-heating coefficient based on the capacitor housing dimensions.
+    :type df: pandas.DataFrame
     :param width: capacitor width in meter
+    :type width: float
     :param length: capacitor length in meter
+    :type length: float
     :param height: capacitor height in meter
+    :type height: float
     :return: thermal equivalent coefficient
+    :rtype: float
     """
     thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
 
@@ -85,7 +95,9 @@ def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataF
     Filtering e.g. for the Pareto front must be done in a separate step by the user.
 
     :param capacitor_requirements: capacitor requirements
+    :type capacitor_requirements: CapacitorRequirements
     :return: pandas data frame with all possible capacitors.
+    :rtype: pandas.DataFrame
     """
     # calculate minimum required capacitance and RMS current
     calculated_requirements_and_values = calculate_from_requirements(capacitor_requirements)

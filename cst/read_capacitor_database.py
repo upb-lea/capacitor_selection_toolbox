@@ -19,7 +19,8 @@ def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
 
     :param capacitor_type_list: list of capacitor types to load
     :type capacitor_type_list: list[CapacitorType]
-    :return:
+    :return: pandas data frame with all loaded capacitors
+    :rtype: pandas.DataFrame
     """
     for capacitor_type in capacitor_type_list:
         if capacitor_type == CapacitorType.FilmCapacitor:
@@ -75,8 +76,6 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
 
     database_path = pathlib.PurePath(path.parents[0], "B3271*P_derating.csv")
     c_derating = pd.read_csv(database_path, sep=';', decimal=',')
-
-    print(c_derating.head())
 
     return c_df, sh_df, c_derating
 
