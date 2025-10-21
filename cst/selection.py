@@ -32,9 +32,9 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -
         i_rms=i_rms
     )
 
-def look_for_derating_factor(ambient_temperature: float, df_derating: pd.DataFrame) -> float:
+def get_temperature_current_derating_factor(ambient_temperature: float, df_derating: pd.DataFrame) -> float:
     """
-    Read the capacitors temperature derating factor from a look-up table.
+    Read the capacitors temperature derating factor from a look-up table (from data sheet).
 
     :param ambient_temperature: ambient temperature in degree Celsius
     :param df_derating: dataframe with temperature derating information
@@ -49,9 +49,9 @@ def look_for_derating_factor(ambient_temperature: float, df_derating: pd.DataFra
         derating_factor = np.interp(ambient_temperature, df_derating["temperature"], df_derating["derating_factor"])
     return derating_factor
 
-def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, height: float) -> float:
+def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: float, height: float) -> float:
     """
-    Read the thermal equivalent self-heating coefficient.
+    Read the thermal equivalent heat coefficient (from data sheet).
 
     :param df: dataframe with equivalent self-heating coefficient based on the capacitor housing dimensions.
     :param width: capacitor width in meter
@@ -69,15 +69,32 @@ def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, 
     return float(thermal_coefficient.values[0])
 
 def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataFrame:
-    # calculate minimum required capacitance
+    """
+    Select suitable capacitors for the given application.
+
+    Function works as a "big filter":
+     - reads in all available capacitor data depending on the given capacitor type
+     - use series connection up to a maximum given number of capacitors to reach the operating voltage
+     - adds parallel capacitors to reach the minimum required capacitance value
+     - adds parallel capacitors to not raise the current limit per capacitor
+     - considers current derating according to the ambient temperature
+     - considers self-heating derating according to the ambient temperature
+     - sort out non-working designs/construction (raising voltage limits, raising temperature limits)
+
+    The resulting pandas data frame contains the whole Pareto plane with all technically possible capacitor designs.
+    Filtering e.g. for the Pareto front must be done in a separate step by the user.
+
+    :param capacitor_requirements: capacitor requirements
+    :return: pandas data frame with all possible capacitors.
+    """
+
+    # calculate minimum required capacitance and RMS current
     calculated_requirements_and_values = calculate_from_requirements(capacitor_requirements)
-    print(calculated_requirements_and_values.requirement_c_min)
 
-    # select all suitable capacitors from the database
-    c_db, sh_db, c_derating = load_capacitors(capacitor_requirements.capacitor_type_list)
+    # select all suitable capacitors including derating and thermal information from the database
+    c_db, c_thermal, c_derating = load_capacitors(capacitor_requirements.capacitor_type_list)
 
-
-    derating_factor = look_for_derating_factor(ambient_temperature=capacitor_requirements.temperature_ambient, df_derating=c_derating)
+    derating_factor = get_temperature_current_derating_factor(ambient_temperature=capacitor_requirements.temperature_ambient, df_derating=c_derating)
 
     # voltage: calculate the number of needed capacitors in a series connection
     c_db["in_series_needed"] = np.ceil(capacitor_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
@@ -104,16 +121,12 @@ def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataF
         power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"]))
     c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
-
-
-    look_for_thermal_coefficient(sh_db, 22e-3, 31.5e-3, 36.5e-3)
-
     # self heating calculation
-    c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: look_for_thermal_coefficient(sh_db, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+    # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
+    c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: get_equivalent_heat_coefficient(c_thermal, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
     c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
     # check for temperature derating
-
     c_db["delta_temperature_max"] = derating_factor ** 2 * 15
 
     # drop too high self-heated capacitors

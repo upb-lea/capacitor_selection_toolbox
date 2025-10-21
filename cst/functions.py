@@ -20,10 +20,9 @@ def fft(period_vector_t_i: np.ndarray, sample_factor: int = 1000, plot: str = 'n
 
     :Minimal Example:
 
-    >>> import femmt as fmt
     >>> import numpy as np
     >>> example_waveform = np.array([[0, 1.34, 3.14, 4.48, 6.28],[-175.69, 103.47, 175.69, -103.47,-175.69]])
-    >>> out = fmt.fft(example_waveform, plot='yes', mode='rad', f0=25000, title='ffT input current')
+    >>> out = fft(example_waveform, plot='yes', mode='rad', f0=25000, title='ffT input current')
 
     :param period_vector_t_i: numpy-array [[time-vector[,[current-vector]]. One period only
     :type period_vector_t_i: np.array
