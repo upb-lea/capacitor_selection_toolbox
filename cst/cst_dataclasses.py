@@ -14,7 +14,7 @@ class CapacitorType(IntEnum):
     ElectrolyticCapacitor = 1
 
 @dataclass
-class SelectCapacitor:
+class CapacitorRequirements:
     """Input values and boundaries for the capacitor selection."""
 
     maximum_peak_to_peak_voltage_ripple: float
