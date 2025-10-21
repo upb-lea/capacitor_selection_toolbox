@@ -21,10 +21,6 @@ capacitor_requirements = cst.SelectCapacitor(
     maximum_number_series_capacitors=2
 )
 
-
-
-
-
 # calculate minimum required capacitance
 calculated_requirements_and_values = cst.calculate_from_requirements(capacitor_requirements)
 print(calculated_requirements_and_values.requirement_c_min)
@@ -112,7 +108,7 @@ c_db = c_db.drop(c_db[c_db["delta_temperature"] > c_db["delta_temperature_max"]]
 
 
 # plot the results
-plt.scatter(c_db["volume_total"] * cst.Constants.QubicMeterToQubicDecimeter, c_db["power_loss_total"])
+plt.scatter(c_db["volume_total"] * cst.QUBIC_METER_TO_QUBIC_DECIMETER, c_db["power_loss_total"])
 plt.xlabel("Total capacitor volume / dm³")
 plt.ylabel("total capacitor loss / W")
 plt.grid()

@@ -1,4 +1,4 @@
-"""Misc calcualtions."""
+"""Misc calculations."""
 
 # 3rd party libraries
 import numpy as np

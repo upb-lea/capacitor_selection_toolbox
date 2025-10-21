@@ -1,13 +1,12 @@
 """Constants for the capacitor selection toolbox."""
 
 # python libraries
-from enum import Enum
 
-class Constants(Enum):
-    MilliMeterToMeter = 1e-3
-    MilliOhmToOhm = 1e-3
-    MilliWattToWatt = 1e-3
-    QubicMilliMeterToQubicMeter = 1e-9
-    NanoHenryToHenry = 1e-9
-    MicroFaradToFarad = 1e-6
-    QubicMeterToQubicDecimeter = 1e6
+# milli, micro, nano
+MILLI_TO_NORM = 1e-3
+MICRO_TO_NORM = 1e-6
+NANO_TO_NORM = 1e-9
+
+# qubic milli/deci-meter
+QUBIC_MILLI_METER_TO_QUBIC_METER = 1e-9
+QUBIC_METER_TO_QUBIC_DECIMETER = 1e6

@@ -8,7 +8,7 @@ import pandas as pd
 
 # own libraries
 from cst.cst_dataclasses import CapacitorType
-from cst.constants import Constants
+from cst import constants as const
 
 
 def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
@@ -39,26 +39,27 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
     path = pathlib.Path(__file__)
     database_path = pathlib.PurePath(path.parents[0], "B3271*P.csv")
 
-    c_df = pd.read_csv(database_path, sep=';', decimal=',')
+    c_df = pd.read_csv(database_path, sep=';', decimal='.')
 
     # drop unused columns to reduce the data set
     c_df = c_df.drop(columns=["multiplier_1", "multiplier_2", "MOQ", "p1_in_mm"])
 
     # transfer the datasheet given units to SI units
-    c_df['volume'] = c_df["width_in_mm"].astype(float) * c_df["height_in_mm"].astype(float) * c_df["length_in_mm"].astype(float) * Constants.QubicMilliMeterToQubicMeter
-    c_df['area'] = c_df["width_in_mm"].astype(float) * Constants.MilliMeterToMeter * c_df["length_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    c_df["width_in_m"] = c_df["width_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    c_df["height_in_m"] = c_df["height_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    c_df["length_in_m"] = c_df["length_in_mm"].astype(float) * Constants.MilliMeterToMeter
+    c_df['volume'] = c_df["width_in_mm"].astype(float) * c_df["height_in_mm"].astype(float) * c_df["length_in_mm"].astype(float) * \
+        const.QUBIC_MILLI_METER_TO_QUBIC_METER
+    c_df['area'] = c_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM * c_df["length_in_mm"].astype(float) * const.MILLI_TO_NORM
+    c_df["width_in_m"] = c_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM
+    c_df["height_in_m"] = c_df["height_in_mm"].astype(float) * const.MILLI_TO_NORM
+    c_df["length_in_m"] = c_df["length_in_mm"].astype(float) * const.MILLI_TO_NORM
     c_df = c_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm"])
 
-    c_df['capacitance'] = c_df["capacitance_in_uf"].astype(float) * Constants.MicroFaradToFarad
+    c_df['capacitance'] = c_df["capacitance_in_uf"].astype(float) * const.MICRO_TO_NORM
     c_df = c_df.drop(columns=["capacitance_in_uf"])
 
-    c_df["ESR_85degree_in_Ohm"] = c_df["ESR_85degree_in_mOhm"].astype(float) * Constants.MilliOhmToOhm
+    c_df["ESR_85degree_in_Ohm"] = c_df["ESR_85degree_in_mOhm"].astype(float) * const.MILLI_TO_NORM
     c_df = c_df.drop(columns=["ESR_85degree_in_mOhm"])
 
-    c_df["ESL_in_H"] = c_df["ESL_in_nH"].astype(float) * Constants.NanoHenryToHenry
+    c_df["ESL_in_H"] = c_df["ESL_in_nH"].astype(float) * const.NANO_TO_NORM
     c_df = c_df.drop(columns=["ESL_in_nH"])
 
     c_df["i_rms_max_85degree_in_A"] = c_df["i_rms_max_85degree_in_A"].astype(float)
@@ -66,10 +67,10 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
     self_heating_path = pathlib.PurePath(path.parents[0], "B3271*P_self_heating.csv")
     sh_df = pd.read_csv(self_heating_path, sep=';', decimal=',')
 
-    sh_df["width_in_m"] = sh_df["width_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    sh_df["height_in_m"] = sh_df["height_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    sh_df["length_in_m"] = sh_df["length_in_mm"].astype(float) * Constants.MilliMeterToMeter
-    sh_df["g_in_W_degreeCelsius"] = sh_df["g_in_mW_degreeCelsius"].astype(float) * Constants.MilliWattToWatt
+    sh_df["width_in_m"] = sh_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM
+    sh_df["height_in_m"] = sh_df["height_in_mm"].astype(float) * const.MILLI_TO_NORM
+    sh_df["length_in_m"] = sh_df["length_in_mm"].astype(float) * const.MILLI_TO_NORM
+    sh_df["g_in_W_degreeCelsius"] = sh_df["g_in_mW_degreeCelsius"].astype(float) * const.MILLI_TO_NORM
     sh_df = sh_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm", "g_in_mW_degreeCelsius"])
 
     database_path = pathlib.PurePath(path.parents[0], "B3271*P_derating.csv")
