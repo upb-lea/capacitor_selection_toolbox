@@ -28,7 +28,7 @@ def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
 
     return c_df
 
-def load_dc_film_capacitors() -> pd.DataFrame:
+def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame]:
     """
     Load dc film capacitors from the database.
 
@@ -46,6 +46,9 @@ def load_dc_film_capacitors() -> pd.DataFrame:
     # transfer the datasheet given units to SI units
     c_df['volume'] = c_df["width_in_mm"].astype(float) * 1e-3 * c_df["height_in_mm"].astype(float) * 1e-3 * c_df["length_in_mm"].astype(float) * 1e-3
     c_df['area'] = c_df["width_in_mm"].astype(float) * 1e-3 * c_df["length_in_mm"].astype(float) * 1e-3
+    c_df["width_in_m"] = c_df["width_in_mm"].astype(float) * 1e-3
+    c_df["height_in_m"] = c_df["height_in_mm"].astype(float) * 1e-3
+    c_df["length_in_m"] = c_df["length_in_mm"].astype(float) * 1e-3
     c_df = c_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm"])
 
     c_df['capacitance'] = c_df["capacitance_in_uf"].astype(float) * 1e-6
@@ -59,7 +62,16 @@ def load_dc_film_capacitors() -> pd.DataFrame:
 
     c_df["i_rms_max_85degree_in_A"] = c_df["i_rms_max_85degree_in_A"].astype(float)
 
-    return c_df
+    self_heating_path = pathlib.PurePath(path.parents[0], "B3271*P_self_heating.csv")
+    sh_df = pd.read_csv(self_heating_path, sep=';', decimal=',')
+
+    sh_df["width_in_m"] = sh_df["width_in_mm"].astype(float) * 1e-3
+    sh_df["height_in_m"] = sh_df["height_in_mm"].astype(float) * 1e-3
+    sh_df["length_in_m"] = sh_df["length_in_mm"].astype(float) * 1e-3
+    sh_df["g_in_W_degreeCelsius"] = sh_df["g_in_mW_degreeCelsius"].astype(float) * 1e-3
+    sh_df = sh_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm", "g_in_mW_degreeCelsius"])
+
+    return c_df, sh_df
 
 
 if __name__ == "__main__":

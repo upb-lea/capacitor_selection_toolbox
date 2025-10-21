@@ -6,7 +6,8 @@ results/
 */__pycache__/
 *.sqlite3
 *.html
-*.csv
+*.ods
+*.ods#
 *.zip
 *.pkl
 dictionary.dic

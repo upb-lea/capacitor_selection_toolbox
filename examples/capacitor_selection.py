@@ -2,6 +2,7 @@
 
 # 3rd party libraries
 import numpy as np
+import pandas as pd
 from matplotlib import pyplot as plt
 
 # own libraries
@@ -25,9 +26,10 @@ calculated_requirements_and_values = cst.calculate_from_requirements(capacitor_r
 print(calculated_requirements_and_values.requirement_c_min)
 
 # select all suitable capacitors from the database
-c_db = cst.load_capacitors(capacitor_requirements.capacitor_type_list)
+c_db, sh_db = cst.load_capacitors(capacitor_requirements.capacitor_type_list)
 
 print(c_db.columns)
+print(sh_db.columns)
 
 
 # voltage: calculate the number of needed capacitors in a series connection
@@ -48,12 +50,34 @@ c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
 # volume calculation
 c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
+# loss calculation
 [frequency_list, current_amplitude_list, _] = cst.fft(capacitor_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 c_db.loc[:, 'power_loss_per_capacitor'] = (
     cst.power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"]))
 c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
+def look_for_thermal_coefficient(df: pd.DataFrame, width: float, length: float, height: float):
+
+    thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
+
+    print(thermal_coefficient.values[0])
+
+    if len(thermal_coefficient.values) != 1:
+        raise ValueError("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.")
+
+    return thermal_coefficient.values[0]
+
+
+look_for_thermal_coefficient(sh_db, 22e-3, 31.5e-3, 36.5e-3)
+
+# self heating calculation
+c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: look_for_thermal_coefficient(sh_db, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+
+
+print(c_db['g_in_W_degreeCelsius'])
+print(c_db["delta_temperature"])
 
 # plot the results
 plt.scatter(c_db["volume_total"] * 1e6, c_db["power_loss_total"])
