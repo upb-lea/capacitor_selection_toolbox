@@ -105,8 +105,15 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
 
     derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
+    # check for temperature derating
+    delta_temperature_max = derating_factor ** 2 * 15
+
+    virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
+    c_db['V_op_max_virt'] = c_db.apply(lambda x: np.interp(virtual_inner_max_temperature, [85, 105, 125],
+                                                           [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
+
     # voltage: calculate the number of needed capacitors in a series connection
-    c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
+    c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
                                                                                  (1 + c_requirements.voltage_safety_margin_percentage / 100)))
     # drop series connection capacitors more than specified
     c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
@@ -138,10 +145,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
     c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: get_equivalent_heat_coefficient(c_thermal, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
     c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
-    # check for temperature derating
-    c_db["delta_temperature_max"] = derating_factor ** 2 * 15
-
     # drop too high self-heated capacitors
-    c_db = c_db.drop(c_db[c_db["delta_temperature"] > c_db["delta_temperature_max"]].index)
+    c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
 
     return c_db

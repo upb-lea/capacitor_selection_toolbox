@@ -29,7 +29,6 @@ def read_equal_series_resistance(order_number: str) -> pd.DataFrame:
     esr_csv_filepath = pathlib.PurePath(path.parents[0], "esr_downloads", f"{order_number}.csv")
 
     df = pd.read_csv(esr_csv_filepath)
-    print(df.head())
 
     df["esr"] = df["ESR_FINAL"] * const.MILLI_TO_NORM
     df = df.drop(columns=["ESR_FINAL", "EDITION_DATE"])
