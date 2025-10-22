@@ -71,8 +71,6 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
     """
     thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
 
-    print(thermal_coefficient.values[0])
-
     if len(thermal_coefficient.values) != 1:
         raise ValueError("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.")
 
@@ -128,8 +126,10 @@ def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataF
     # loss calculation
     [frequency_list, current_amplitude_list, _] = fft(capacitor_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
-    c_db.loc[:, 'power_loss_per_capacitor'] = (
-        power_loss_film_capacitor(c_db["ESR_85degree_in_Ohm"], frequency_list, current_amplitude_list, c_db["in_parallel_needed"]))
+
+    c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
+                                                                                      x["in_parallel_needed"]), axis=1)
+
     c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
     # self heating calculation
