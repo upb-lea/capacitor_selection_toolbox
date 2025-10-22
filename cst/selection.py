@@ -76,7 +76,7 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
 
     return float(thermal_coefficient.values[0])
 
-def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataFrame:
+def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
     """
     Select suitable capacitors for the given application.
 
@@ -92,30 +92,31 @@ def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataF
     The resulting pandas data frame contains the whole Pareto plane with all technically possible capacitor designs.
     Filtering e.g. for the Pareto front must be done in a separate step by the user.
 
-    :param capacitor_requirements: capacitor requirements
-    :type capacitor_requirements: CapacitorRequirements
+    :param c_requirements: capacitor requirements
+    :type c_requirements: CapacitorRequirements
     :return: pandas data frame with all possible capacitors.
     :rtype: pandas.DataFrame
     """
     # calculate minimum required capacitance and RMS current
-    calculated_requirements_and_values = calculate_from_requirements(capacitor_requirements)
+    calculated_boundaries = calculate_from_requirements(c_requirements)
 
     # select all suitable capacitors including derating and thermal information from the database
-    c_db, c_thermal, c_derating = load_capacitors(capacitor_requirements.capacitor_type_list)
+    c_db, c_thermal, c_derating = load_capacitors(c_requirements.capacitor_type_list)
 
-    derating_factor = get_temperature_current_derating_factor(ambient_temperature=capacitor_requirements.temperature_ambient, df_derating=c_derating)
+    derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
     # voltage: calculate the number of needed capacitors in a series connection
-    c_db["in_series_needed"] = np.ceil(capacitor_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
-                                                                                         (1 + capacitor_requirements.voltage_safety_margin_percentage / 100)))
+    c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_125degree'] * \
+                                                                                 (1 + c_requirements.voltage_safety_margin_percentage / 100)))
     # drop series connection capacitors more than specified
-    c_db = c_db.drop(c_db[c_db["in_series_needed"] > capacitor_requirements.maximum_number_series_capacitors].index)
+    c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
     # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
-    c_db["in_parallel_needed"] = np.ceil(calculated_requirements_and_values.requirement_c_min / (c_db["capacitance"] / c_db["in_series_needed"]))
+    c_db["in_parallel_needed"] = np.ceil(
+        calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance / 100) / c_db["in_series_needed"]))
 
     # current: calculate the number of parallel capacitors needed to meet the current requirement
-    c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_requirements_and_values.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
+    c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_boundaries.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
     index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
     c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
     c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
@@ -124,7 +125,7 @@ def select_capacitors(capacitor_requirements: CapacitorRequirements) -> pd.DataF
     c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
     # loss calculation
-    [frequency_list, current_amplitude_list, _] = fft(capacitor_requirements.current_waveform_for_op_max_current, plot='no',
+    [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
     c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,

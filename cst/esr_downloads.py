@@ -52,7 +52,9 @@ def download_esr_csv_files(capacitor_type_list: list[CapacitorType]) -> None:
     # capacitor pareto plane calculation
     for ordering_code in c_db['ordering code']:
         # modify ordering code for url
+        # ESR graphs are the same for 5 % ("J") and 10 % ("K") tolerance. So 10 % is used, as in 5 %, not all capacitors are available
         ordering_code = ordering_code.replace("+", "K")
+        # this is a URL specific replacement (not clear why needed, but figured out by studying the URL. Works fine.)
         ordering_code_short = ordering_code.replace("000", "")
 
         # generate csv file path

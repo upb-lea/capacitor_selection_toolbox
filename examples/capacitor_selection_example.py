@@ -17,7 +17,8 @@ capacitor_requirements = cst.CapacitorRequirements(
     temperature_ambient=40,
     voltage_safety_margin_percentage=10,
     capacitor_type_list=[cst.CapacitorType.FilmCapacitor],
-    maximum_number_series_capacitors=2
+    maximum_number_series_capacitors=2,
+    capacitor_tolerance=cst.CapacitanceTolerance.TenPercent
 )
 
 # capacitor pareto plane calculation
