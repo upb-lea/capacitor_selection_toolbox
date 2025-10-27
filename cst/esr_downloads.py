@@ -3,6 +3,7 @@
 # python libraries
 import requests
 import pathlib
+import logging
 
 # 3rd party libraries
 
@@ -10,6 +11,8 @@ import pathlib
 import cst.constants as const
 from cst.cst_dataclasses import CapacitorType
 from cst.read_capacitor_database import load_capacitors
+
+logger = logging.getLogger(__name__)
 
 def _download_file(url: str, save_path: str) -> None:
     """
@@ -29,11 +32,11 @@ def _download_file(url: str, save_path: str) -> None:
             # Write the content of the response to a local file
             with open(save_path, 'wb') as file:
                 file.write(response.content)
-            print(f"File downloaded successfully: {save_path}")
+            logger.info(f"File downloaded successfully: {save_path}")
         else:
-            print(f"Failed to download file. Status code: {response.status_code}")
+            logger.warning(f"Failed to download file ({url}). Status code: {response.status_code}")
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error {e} while downloading capacitor url:{url}")
 
 
 def download_esr_csv_files(capacitor_type_list: list[CapacitorType]) -> None:
@@ -60,7 +63,7 @@ def download_esr_csv_files(capacitor_type_list: list[CapacitorType]) -> None:
         # generate csv file path
         save_path = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_FOLDER, f"{ordering_code}.csv")
         if save_path.exists():
-            print(f"{save_path} already exists. Skip download.")
+            logger.info(f"{save_path} already exists. Skip download.")
         else:
             url = (f"https://captools.tdk-electronics.tdk.com/CLARA/api/ApiWebCLARA/DownloadThermalRating?partNumber={ordering_code}"
                    f"&modelPartNumber={ordering_code_short}")

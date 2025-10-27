@@ -9,6 +9,7 @@ from cst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsVal
 from cst.functions import fft
 from cst.read_capacitor_database import load_capacitors
 from cst.power_loss import power_loss_film_capacitor
+import cst.constants as const
 
 def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -> CalculatedRequirementsValues:
     """
@@ -105,11 +106,13 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
 
     derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
-    # check for temperature derating
-    delta_temperature_max = derating_factor ** 2 * 15
+    # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
+    delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
 
     virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
-    c_db['V_op_max_virt'] = c_db.apply(lambda x: np.interp(virtual_inner_max_temperature, [85, 105, 125],
+    # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
+    c_db['V_op_max_virt'] = c_db.apply(
+        lambda x: np.interp(virtual_inner_max_temperature, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
                                                            [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
     # voltage: calculate the number of needed capacitors in a series connection
@@ -130,7 +133,6 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
 
     # volume calculation
     c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
-
 
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')

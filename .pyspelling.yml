@@ -4,7 +4,7 @@ matrix:
     lang: en
     d: en_US
   sources:
-  - dct/*.py
+  - cst/*.py
   - tests/*.py
   dictionary:
     wordlists:
