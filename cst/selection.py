@@ -131,13 +131,18 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
     # volume calculation
     c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-    # loss calculation
+
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
+    # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+    c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
+    c_db = c_db.drop(columns=c_db[c_db["f_res"] < frequency_list[0]].index)
+
+    # loss calculation per capacitor
     c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
                                                                                       x["in_parallel_needed"]), axis=1)
-
+    # loss calculation for all capacitors
     c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
     # self heating calculation
