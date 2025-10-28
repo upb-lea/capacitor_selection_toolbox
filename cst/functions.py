@@ -50,7 +50,7 @@ def fft(period_vector_t_i: np.ndarray, sample_factor: int = 1000, plot: str = 'n
     :type figure_size: tuple
 
     :return: numpy-array [[frequency-vector],[amplitude-vector],[phase-vector]]
-    :rtype: npt.NDArray[list]
+    :rtype: np.ndarray[list]
     """
     # check for correct input parameter
     if (mode == 'rad' or mode == 'deg') and f0 is None:

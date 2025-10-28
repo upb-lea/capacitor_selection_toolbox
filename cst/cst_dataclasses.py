@@ -13,6 +13,13 @@ class CapacitorType(IntEnum):
     FilmCapacitor = 0
     ElectrolyticCapacitor = 1
 
+class CapacitanceTolerance(IntEnum):
+    """Typical capacitance tolerance values as enum."""
+
+    TenPercent = 10
+    FivePercent = 5
+
+
 @dataclass
 class CapacitorRequirements:
     """Input values and boundaries for the capacitor selection."""
@@ -26,6 +33,7 @@ class CapacitorRequirements:
     voltage_safety_margin_percentage: float
     capacitor_type_list: list[CapacitorType]
     maximum_number_series_capacitors: int
+    capacitor_tolerance: CapacitanceTolerance
 
 @dataclass
 class CalculatedRequirementsValues:

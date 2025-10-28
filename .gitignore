@@ -12,3 +12,4 @@ results/
 *.pkl
 dictionary.dic
 workspace/
+cst/esr_downloads/*
