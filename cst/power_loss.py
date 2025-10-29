@@ -56,6 +56,7 @@ def power_loss_film_capacitor(order_number: str, frequency_list: list[float], cu
     :rtype: float
     """
     order_number = order_number.replace("+", "K")
+    order_number = order_number.replace("*", "")
 
     # read ESR file
     esr_df = read_capacitor_frequency_dependent_limits(order_number)

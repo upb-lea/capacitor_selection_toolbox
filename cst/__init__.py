@@ -8,3 +8,4 @@ from cst.constants import *
 from cst.esr_downloads import *
 from cst.generalplotsettings import *
 from cst.cost_models import *
+from cst.colors import *

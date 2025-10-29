@@ -22,18 +22,22 @@ capacitor_requirements = cst.CapacitorRequirements(
 )
 
 # capacitor pareto plane calculation
-c_db = cst.select_capacitors(capacitor_requirements)
+c_name_list, c_db_list = cst.select_capacitors(capacitor_requirements)
+color_list = [cst.gnome_colors["black"], cst.gnome_colors["red"]]
 
 # plot capacitor pareto plane
 cst.global_plot_settings_font_latex()
 cst.update_font_size(8)
 fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(80/25.4, 80/25.4))
-ax.scatter(c_db["volume_total"] * cst.QUBIC_METER_TO_QUBIC_DECIMETER, c_db["power_loss_total"] * cst.NORM_TO_MILLI, color="black")
+for count, c_db in enumerate(c_db_list):
+    ax.scatter(c_db["volume_total"] * cst.QUBIC_METER_TO_QUBIC_DECIMETER, c_db["power_loss_total"] * cst.NORM_TO_MILLI,
+               color=color_list[count], label=c_name_list[count])
 ax.set_xlabel(r"$V_\mathrm{C,total}$ / dm³")
 ax.set_ylabel(r"$P_\mathrm{loss,total}$ / mW")
 ax.grid()
 ax.set_xlim(100, 600)
 ax.set_ylim(0, 4)
+ax.legend()
 plt.tight_layout()
 fig.savefig("pareto_capacitor.pdf")
 plt.show()

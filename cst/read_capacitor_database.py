@@ -7,39 +7,20 @@ import pathlib
 import pandas as pd
 
 # own libraries
-from cst.cst_dataclasses import CapacitorType
 from cst import constants as const
 
-
-def load_capacitors(capacitor_type_list: list[CapacitorType]) -> pd.DataFrame:
-    """
-    Load the capacitors from the given types, e.g. film capacitors, electrolytic capacitors, ...
-
-    Returns all loaded capacitor classes in a single list.
-
-    :param capacitor_type_list: list of capacitor types to load
-    :type capacitor_type_list: list[CapacitorType]
-    :return: pandas data frame with all loaded capacitors
-    :rtype: pandas.DataFrame
-    """
-    for capacitor_type in capacitor_type_list:
-        if capacitor_type == CapacitorType.FilmCapacitor:
-            c_df = load_dc_film_capacitors()
-        elif capacitor_type == CapacitorType.ElectrolyticCapacitor:
-            raise NotImplementedError
-
-    return c_df
-
-def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Load dc film capacitors from the database.
 
+    :param capacitor_series_name: name of the capacitor series to download
+    :type capacitor_series_name: str
     :return: unified list of film capacitors
     :rtype: tuple[pandas.DataFrame, pandas.DataFrame, pandas.DataFrame]
     """
     path = pathlib.Path(__file__)
-    database_path = pathlib.PurePath(path.parents[0], "B3271*P.csv")
 
+    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}.csv")
     c_df = pd.read_csv(database_path, sep=';', decimal='.')
 
     # drop unused columns to reduce the data set
@@ -65,7 +46,7 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
 
     c_df["i_rms_max_85degree_in_A"] = c_df["i_rms_max_85degree_in_A"].astype(float)
 
-    self_heating_path = pathlib.PurePath(path.parents[0], "B3271*P_self_heating.csv")
+    self_heating_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_self_heating.csv")
     sh_df = pd.read_csv(self_heating_path, sep=';', decimal=',')
 
     sh_df["width_in_m"] = sh_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM
@@ -74,11 +55,12 @@ def load_dc_film_capacitors() -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]
     sh_df["g_in_W_degreeCelsius"] = sh_df["g_in_mW_degreeCelsius"].astype(float) * const.MILLI_TO_NORM
     sh_df = sh_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm", "g_in_mW_degreeCelsius"])
 
-    database_path = pathlib.PurePath(path.parents[0], "B3271*P_derating.csv")
+    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_derating.csv")
     c_derating = pd.read_csv(database_path, sep=';', decimal=',')
 
     return c_df, sh_df, c_derating
 
 
 if __name__ == "__main__":
-    load_dc_film_capacitors()
+    load_dc_film_capacitors("B3271*P")
+    c_df, sh_df, c_derating = load_dc_film_capacitors("B3272*AGT")

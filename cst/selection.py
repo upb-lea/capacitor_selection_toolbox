@@ -1,4 +1,6 @@
 """Misc calculations."""
+# python libraries
+import logging
 
 # 3rd party libraries
 import numpy as np
@@ -7,10 +9,12 @@ import pandas as pd
 # own libraries
 from cst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
 from cst.functions import fft
-from cst.read_capacitor_database import load_capacitors
+from cst.read_capacitor_database import load_dc_film_capacitors
 from cst.power_loss import power_loss_film_capacitor
 import cst.constants as const
 import cst.cost_models as cost
+
+logger = logging.getLogger(__name__)
 
 def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -> CalculatedRequirementsValues:
     """
@@ -74,11 +78,15 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
     thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
 
     if len(thermal_coefficient.values) != 1:
-        raise ValueError("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.")
+        thermal_coefficient = np.nan
+        logger.info("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.\n"
+                    f"{width=}, {height=}, {length=}")
+    else:
+        thermal_coefficient = float(thermal_coefficient.values[0])
 
-    return float(thermal_coefficient.values[0])
+    return thermal_coefficient
 
-def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
+def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
     Select suitable capacitors for the given application.
 
@@ -102,63 +110,70 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
     # calculate minimum required capacitance and RMS current
     calculated_boundaries = calculate_from_requirements(c_requirements)
 
-    # select all suitable capacitors including derating and thermal information from the database
-    c_db, c_thermal, c_derating = load_capacitors(c_requirements.capacitor_type_list)
+    capacitor_df_list = []
 
-    derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
+    for capacitor_series_name in const.CAPACITOR_SERIES_NAME_LIST:
 
-    # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
-    delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
+        # select all suitable capacitors including derating and thermal information from the database
+        c_db, c_thermal, c_derating = load_dc_film_capacitors(capacitor_series_name)
 
-    virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
-    # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
-    c_db['V_op_max_virt'] = c_db.apply(
-        lambda x: np.interp(virtual_inner_max_temperature, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
-                                                           [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
+        derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
-    # voltage: calculate the number of needed capacitors in a series connection
-    c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
-                                                                                 (1 + c_requirements.voltage_safety_margin_percentage / 100)))
-    # drop series connection capacitors more than specified
-    c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
+        # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
+        delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
 
-    # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
-    c_db["in_parallel_needed"] = np.ceil(
-        calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance / 100) / c_db["in_series_needed"]))
+        virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
+        # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
+        c_db['V_op_max_virt'] = c_db.apply(
+            lambda x: np.interp(virtual_inner_max_temperature, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
+                                                               [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
-    # current: calculate the number of parallel capacitors needed to meet the current requirement
-    c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_boundaries.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
-    index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
-    c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
-    c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
+        # voltage: calculate the number of needed capacitors in a series connection
+        c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
+                                                                                     (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+        # drop series connection capacitors more than specified
+        c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
-    # volume calculation
-    c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+        # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
+        c_db["in_parallel_needed"] = np.ceil(
+            calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance / 100) / c_db["in_series_needed"]))
 
-    [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
-                                                      mode='time', title='ffT input current')
+        # current: calculate the number of parallel capacitors needed to meet the current requirement
+        c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_boundaries.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
+        index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
+        c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
+        c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
 
-    # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
-    c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-    c_db = c_db.drop(columns=c_db[c_db["f_res"] < frequency_list[0]].index)
+        # volume calculation
+        c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-    # loss calculation per capacitor
-    c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                                      x["in_parallel_needed"]), axis=1)
-    # loss calculation for all capacitors
-    c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+        [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
+                                                          mode='time', title='ffT input current')
 
-    # self heating calculation
-    # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-    c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: get_equivalent_heat_coefficient(c_thermal, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
-    c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+        # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+        c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
+        c_db = c_db.drop(columns=c_db[c_db["f_res"] < frequency_list[0]].index)
 
-    # drop too high self-heated capacitors
-    c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+        # loss calculation per capacitor
+        c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
+                                                                                          x["in_parallel_needed"]), axis=1)
+        # loss calculation for all capacitors
+        c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
-    # calculate component cost according to cost models
-    print(c_db.columns)
-    c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
-        c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
+        # self heating calculation
+        # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
+        c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: get_equivalent_heat_coefficient(
+            c_thermal, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+        c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
+        c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
-    return c_db
+        # drop too high self-heated capacitors
+        c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+
+        # calculate component cost according to cost models
+        c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
+            c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
+
+        capacitor_df_list.append(c_db)
+
+    return const.CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
