@@ -6,3 +6,4 @@ from cst.cst_dataclasses import *
 from cst.selection import *
 from cst.constants import *
 from cst.esr_downloads import *
+from cst.generalplotsettings import *

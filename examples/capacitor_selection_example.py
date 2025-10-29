@@ -25,8 +25,14 @@ capacitor_requirements = cst.CapacitorRequirements(
 c_db = cst.select_capacitors(capacitor_requirements)
 
 # plot capacitor pareto plane
-plt.scatter(c_db["volume_total"] * cst.QUBIC_METER_TO_QUBIC_DECIMETER, c_db["power_loss_total"])
-plt.xlabel("Total capacitor volume / dm³")
-plt.ylabel("total capacitor loss / W")
-plt.grid()
+cst.global_plot_settings_font_latex()
+fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(80/25.4, 80/25.4))
+ax.scatter(c_db["volume_total"] * cst.QUBIC_METER_TO_QUBIC_DECIMETER, c_db["power_loss_total"] * cst.NORM_TO_MILLI, color="black")
+ax.set_xlabel("Total capacitor bank volume / dm³")
+ax.set_ylabel("Total capacitor bank losses / mW")
+ax.grid()
+ax.set_xlim(100, 600)
+ax.set_ylim(0, 4)
+plt.tight_layout()
+fig.savefig("pareto_capacitor.pdf")
 plt.show()
