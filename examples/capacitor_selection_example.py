@@ -23,7 +23,7 @@ capacitor_requirements = cst.CapacitorRequirements(
 
 # capacitor pareto plane calculation
 c_name_list, c_db_list = cst.select_capacitors(capacitor_requirements)
-color_list = [cst.gnome_colors["black"], cst.gnome_colors["red"]]
+color_list = [cst.gnome_colors["black"], cst.gnome_colors["red"], cst.gnome_colors["blue"]]
 
 # plot capacitor pareto plane
 cst.global_plot_settings_font_latex()
