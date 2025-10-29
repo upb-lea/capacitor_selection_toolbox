@@ -10,6 +10,7 @@ from cst.functions import fft
 from cst.read_capacitor_database import load_capacitors
 from cst.power_loss import power_loss_film_capacitor
 import cst.constants as const
+import cst.cost_models as cost
 
 def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -> CalculatedRequirementsValues:
     """
@@ -154,5 +155,10 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> pd.DataFrame:
 
     # drop too high self-heated capacitors
     c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+
+    # calculate component cost according to cost models
+    print(c_db.columns)
+    c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
+        c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
 
     return c_db
