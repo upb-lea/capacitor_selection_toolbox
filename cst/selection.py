@@ -5,6 +5,7 @@ import logging
 # 3rd party libraries
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 # own libraries
 from cst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
@@ -16,12 +17,37 @@ import cst.cost_models as cost
 
 logger = logging.getLogger(__name__)
 
-def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -> CalculatedRequirementsValues:
+
+def integrate(time: np.ndarray, data: np.ndarray) -> np.ndarray:
+    """
+    Integrate a given time series.
+
+    :param time: list of time
+    :type time: np.ndarray
+    :param data: list of data
+    :type data: np.ndarray
+    """
+    time_step = time[1] - time[0]
+    integrated_data = np.array([])
+    for count, _ in enumerate(time):
+        if count == 0:
+            # set first energy value to zero
+            integrated_data = np.append(integrated_data, 0)
+        else:
+            # using euler method
+            integrated_time_step = (np.nan_to_num(data[count]) + np.nan_to_num(data[count - 1])) / 2 * time_step
+            integrated_data = np.append(integrated_data, integrated_data[-1] + integrated_time_step)
+
+    return integrated_data
+
+def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, debug: bool = False) -> CalculatedRequirementsValues:
     """
     Values and requirements for further calculations needed from the input values.
 
     :param capacitor_requirements: capacitor requirements and input values in a DTO
     :type capacitor_requirements: CapacitorRequirements
+    :param debug: True to show debug plots
+    :type debug: bool
     :return: calculated requirements and values (from input parameters)
     :rtype: CalculatedRequirementsValues
     """
@@ -29,14 +55,41 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements) -
                                        capacitor_requirements.current_waveform_for_op_max_current[0][-1], 5000)
     new_current_sample_rate = np.interp(new_time_sample_rate, capacitor_requirements.current_waveform_for_op_max_current[0],
                                         capacitor_requirements.current_waveform_for_op_max_current[1])
-    time_step = new_time_sample_rate[1] - new_time_sample_rate[0]
-    positive_capacitor_charge = np.sum(new_current_sample_rate[new_current_sample_rate > 0] * time_step)
-    c_min = positive_capacitor_charge / capacitor_requirements.maximum_peak_to_peak_voltage_ripple
+
+    # experimentally figure out c_min
+    c_min = 1e-9
+    c_max = 1e3
+    for _ in np.linspace(1, 50, 50):
+        charge = integrate(new_time_sample_rate, new_current_sample_rate)
+        v_c_at_c_max = charge / c_max
+        v_c_at_c_min = charge / c_min
+        # this is the logarithmic mid between c_min and c_max
+        c_mid = np.sqrt(c_min * c_max)
+        v_c_at_c_mid = charge / c_mid
+
+        v_ripple_at_c_mid = np.max(v_c_at_c_mid) - np.min(v_c_at_c_mid)
+
+        if v_ripple_at_c_mid > capacitor_requirements.maximum_peak_to_peak_voltage_ripple:
+            c_min = c_mid
+        else:
+            c_max = c_mid
 
     i_rms = np.sqrt(np.mean(capacitor_requirements.current_waveform_for_op_max_current[1] ** 2))
 
+    if debug:
+        fig, ax = plt.subplots(nrows=2, ncols=1)
+        ax[0].plot(new_time_sample_rate, new_current_sample_rate)
+        ax[1].plot(new_time_sample_rate, v_c_at_c_max, label="c_max")
+        ax[1].plot(new_time_sample_rate, v_c_at_c_min, label="c_min")
+        ax[1].plot(new_time_sample_rate, v_c_at_c_mid, label="c_mid")
+
+        ax[0].grid()
+        ax[1].grid()
+        plt.legend()
+        plt.show()
+
     return CalculatedRequirementsValues(
-        requirement_c_min=c_min,
+        requirement_c_min=c_mid,
         i_rms=i_rms
     )
 
