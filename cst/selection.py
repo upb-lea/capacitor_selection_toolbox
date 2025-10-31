@@ -1,6 +1,7 @@
 """Misc calculations."""
 # python libraries
 import logging
+import pathlib
 
 # 3rd party libraries
 import numpy as np
@@ -169,6 +170,10 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
+    path = pathlib.Path(__file__)
+    capacitor_series_values_path = pathlib.PurePath(path.parents[0], f"{const.FOIL_CAPACITOR_SERIES_VALUES}.csv")
+    series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
+
     for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
 
         # select all suitable capacitors including derating and thermal information from the database
@@ -177,7 +182,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
         # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
-        delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
+        delta_t_jc_max = series_values.loc[series_values["series"] == capacitor_series_name, "delta_t_jc"].values[0]
+        delta_temperature_max = derating_factor ** 2 * delta_t_jc_max
 
         # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet).
@@ -199,7 +205,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
         # current: calculate the number of parallel capacitors needed to meet the current requirement
-        c_db["parallel_current_capacitors_needed_2"] = c_db.apply(lambda x: current_capability_film_capacitor(
+        c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x: current_capability_film_capacitor(
             order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=derating_factor),
             axis=1)
 

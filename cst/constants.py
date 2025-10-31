@@ -18,6 +18,7 @@ ESR_OVER_FREQUENCY_FOLDER = "esr_downloads"
 
 # available foil capacitor series
 FOIL_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
+FOIL_CAPACITOR_SERIES_VALUES = "series_values"
 
 TEMPERATURE_15 = 15
 TEMPERATURE_85 = 85
