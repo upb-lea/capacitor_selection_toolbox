@@ -27,13 +27,12 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     c_df = c_df.drop(columns=["multiplier_1", "multiplier_2", "MOQ", "p1_in_mm"])
 
     # transfer the datasheet given units to SI units
-    c_df['volume'] = c_df["width_in_mm"].astype(float) * c_df["height_in_mm"].astype(float) * c_df["length_in_mm"].astype(float) * \
-        const.QUBIC_MILLI_METER_TO_QUBIC_METER
     c_df['area'] = c_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM * c_df["length_in_mm"].astype(float) * const.MILLI_TO_NORM
     c_df["width_in_m"] = c_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM
     c_df["height_in_m"] = c_df["height_in_mm"].astype(float) * const.MILLI_TO_NORM
     c_df["length_in_m"] = c_df["length_in_mm"].astype(float) * const.MILLI_TO_NORM
     c_df = c_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm"])
+    c_df['volume'] = c_df["width_in_m"].astype(float) * c_df["height_in_m"].astype(float) * c_df["length_in_m"].astype(float)
 
     c_df['capacitance'] = c_df["capacitance_in_uf"].astype(float) * const.MICRO_TO_NORM
     c_df = c_df.drop(columns=["capacitance_in_uf"])

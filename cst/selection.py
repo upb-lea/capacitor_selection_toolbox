@@ -165,7 +165,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
     capacitor_df_list = []
 
-    for capacitor_series_name in const.CAPACITOR_SERIES_NAME_LIST:
+    for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
 
         # select all suitable capacitors including derating and thermal information from the database
         c_db, c_thermal, c_derating = load_dc_film_capacitors(capacitor_series_name)
@@ -204,8 +204,11 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
                                                           mode='time', title='ffT input current')
 
         # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+        # ESL_total = L * n_serial / n_parallel
+        # C_total = C * n_parallel / n_serial
+        # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
         c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-        c_db = c_db.drop(columns=c_db[c_db["f_res"] < frequency_list[0]].index)
+        c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
 
         # loss calculation per capacitor
         c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
@@ -227,6 +230,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
             c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
 
+        c_db.to_csv(f"results_{capacitor_series_name}.csv")
+
         capacitor_df_list.append(c_db)
 
-    return const.CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
+    return const.FOIL_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list

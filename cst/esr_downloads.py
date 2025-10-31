@@ -40,7 +40,7 @@ def _download_file(url: str, save_path: str) -> None:
 
 def download_esr_csv_files() -> None:
     """Download ESR over frequency data from the manufacturers homepage."""
-    for capacitor_series_name in const.CAPACITOR_SERIES_NAME_LIST:
+    for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
         c_db, c_thermal, c_derating = load_dc_film_capacitors(capacitor_series_name)
 
         esr_folder_name = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_FOLDER)
