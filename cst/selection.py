@@ -14,6 +14,7 @@ from cst.read_capacitor_database import load_dc_film_capacitors
 from cst.power_loss import power_loss_film_capacitor
 import cst.constants as const
 import cst.cost_models as cost
+from cst.current_capability import current_capability_film_capacitor
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +166,9 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
     capacitor_df_list = []
 
+    [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
+                                                      mode='time', title='ffT input current')
+
     for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
 
         # select all suitable capacitors including derating and thermal information from the database
@@ -176,7 +180,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
 
         # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
-        # the voltage rating is for t_op = t_amb + delta_t_self_heating (see datasheet).
+        # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet).
         # This is the reason to estimate the maximum inner allowed operating temperature
         virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
         c_db['V_op_max_virt'] = c_db.apply(
@@ -184,7 +188,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
                                                                [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
         # voltage: calculate the number of needed capacitors in a series connection
-        # the voltage rating is for t_op = t_amb + delta_t_self_heating (see datasheet)
+        # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
         c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
                                                                                      (1 + c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
@@ -195,16 +199,16 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
         # current: calculate the number of parallel capacitors needed to meet the current requirement
-        c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_boundaries.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)
+        c_db["parallel_current_capacitors_needed_2"] = c_db.apply(lambda x: current_capability_film_capacitor(
+            order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=derating_factor),
+            axis=1)
+
         index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
         c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
         c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
 
         # volume calculation
         c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
-
-        [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
-                                                          mode='time', title='ffT input current')
 
         # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
         # ESL_total = L * n_serial / n_parallel

@@ -45,6 +45,8 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
 
     c_df["i_rms_max_85degree_in_A"] = c_df["i_rms_max_85degree_in_A"].astype(float)
 
+    c_df["ordering code"] = c_df["ordering code"].apply(lambda x: x.replace("*", ""))
+
     self_heating_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_self_heating.csv")
     sh_df = pd.read_csv(self_heating_path, sep=';', decimal=',')
 
