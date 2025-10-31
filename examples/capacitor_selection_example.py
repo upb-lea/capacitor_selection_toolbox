@@ -9,7 +9,7 @@ import cst
 
 # capacitor requirements
 capacitor_requirements = cst.CapacitorRequirements(
-    maximum_peak_to_peak_voltage_ripple=0.001,
+    maximum_peak_to_peak_voltage_ripple=1,
     current_waveform_for_op_max_current=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [18, 25, -18, -25, 18]]),
     v_dc_for_op_max_current=700,
     current_waveform_for_op_max_voltage=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [8, 19, -8, -9, 8]]),
@@ -18,7 +18,7 @@ capacitor_requirements = cst.CapacitorRequirements(
     voltage_safety_margin_percentage=10,
     capacitor_type_list=[cst.CapacitorType.FilmCapacitor],
     maximum_number_series_capacitors=2,
-    capacitor_tolerance=cst.CapacitanceTolerance.TenPercent
+    capacitor_tolerance_percent=cst.CapacitanceTolerance.TenPercent
 )
 
 # capacitor pareto plane calculation

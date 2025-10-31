@@ -192,7 +192,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
         # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
         c_db["in_parallel_needed"] = np.ceil(
-            calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance / 100) / c_db["in_series_needed"]))
+            calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
         # current: calculate the number of parallel capacitors needed to meet the current requirement
         c_db["parallel_current_capacitors_needed"] = np.ceil(calculated_boundaries.i_rms / c_db["i_rms_max_85degree_in_A"] / derating_factor)

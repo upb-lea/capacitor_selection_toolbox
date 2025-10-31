@@ -33,7 +33,7 @@ class CapacitorRequirements:
     voltage_safety_margin_percentage: float
     capacitor_type_list: list[CapacitorType]
     maximum_number_series_capacitors: int
-    capacitor_tolerance: CapacitanceTolerance
+    capacitor_tolerance_percent: CapacitanceTolerance
 
 @dataclass
 class CalculatedRequirementsValues:
