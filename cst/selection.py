@@ -106,9 +106,9 @@ def get_temperature_current_derating_factor(ambient_temperature: float, df_derat
     """
     derating_factor: float
     if ambient_temperature < df_derating["temperature"][0]:
-        derating_factor = df_derating["derating_factor"][0]
+        derating_factor = 1
     elif ambient_temperature > df_derating["temperature"][-1]:
-        derating_factor = df_derating["derating_factor"][-1]
+        derating_factor = 0
     else:
         derating_factor = np.interp(ambient_temperature, df_derating["temperature"], df_derating["derating_factor"])
     return derating_factor
@@ -171,6 +171,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_db, c_thermal, c_derating = load_dc_film_capacitors(capacitor_series_name)
 
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
+
+        print(f"{derating_factor=}")
 
         # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
         delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
