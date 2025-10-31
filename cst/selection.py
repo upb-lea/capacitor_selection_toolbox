@@ -190,8 +190,9 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         # This is the reason to estimate the maximum inner allowed operating temperature
         virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
         c_db['V_op_max_virt'] = c_db.apply(
-            lambda x: np.interp(virtual_inner_max_temperature, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
-                                                               [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
+            lambda x, v_i_t=virtual_inner_max_temperature:
+            np.interp(v_i_t, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
+                      [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
         # voltage: calculate the number of needed capacitors in a series connection
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
@@ -205,8 +206,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
         # current: calculate the number of parallel capacitors needed to meet the current requirement
-        c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x: current_capability_film_capacitor(
-            order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=derating_factor),
+        c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
+            order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
             axis=1)
 
         index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
@@ -231,8 +232,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
         # self heating calculation
         # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-        c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x: get_equivalent_heat_coefficient(
-            c_thermal, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+        c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
+            c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
         c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
         c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
