@@ -172,18 +172,19 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
-        print(f"{derating_factor=}")
-
         # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
         delta_temperature_max = derating_factor ** 2 * const.TEMPERATURE_15
 
-        virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
         # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
+        # the voltage rating is for t_op = t_amb + delta_t_self_heating (see datasheet).
+        # This is the reason to estimate the maximum inner allowed operating temperature
+        virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
         c_db['V_op_max_virt'] = c_db.apply(
             lambda x: np.interp(virtual_inner_max_temperature, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
                                                                [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
         # voltage: calculate the number of needed capacitors in a series connection
+        # the voltage rating is for t_op = t_amb + delta_t_self_heating (see datasheet)
         c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
                                                                                      (1 + c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
