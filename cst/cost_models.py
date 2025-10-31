@@ -10,10 +10,10 @@ Ralph Burkart and Johann W. Kolar.
 # Fix cost values according to the above cited paper
 COST_MODEL_DICT = {
     "b_electrolytic": 1.437e-3,   # €/V
-    "c_electrolytic": 24.757e-3,  # €/(F*V²)
+    "c_electrolytic": 24.757e-15,  # €/(F*V²)
     "a_film": -1.022,             # €
-    "b_film": 54.956e-3,          # €/V
-    "c_film": 2.426e3,            # €/F
+    "b_film": 2.426e-3,           # €/V
+    "c_film": 54.956e-9,          # €/F
 }
 
 def cost_electrolytic_capacitor(voltage_rated: float, capacitance_rated: float) -> float:
