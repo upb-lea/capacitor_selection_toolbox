@@ -139,7 +139,7 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
     else:
         thermal_coefficient = float(thermal_coefficient.values[0])
 
-    return thermal_coefficient
+    return float(thermal_coefficient)
 
 def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
