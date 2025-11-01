@@ -16,6 +16,7 @@ from cst.power_loss import power_loss_film_capacitor
 import cst.constants as const
 import cst.cost_models as cost
 from cst.current_capability import current_capability_film_capacitor
+from cst.lifetime import voltage_rating_due_to_lifetime
 
 logger = logging.getLogger(__name__)
 
@@ -175,6 +176,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
     series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
 
     for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
+        logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
         c_db, c_thermal, c_derating, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
@@ -194,9 +196,15 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             np.interp(v_i_t, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
                       [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
+        # voltage lifetime_h derating
+        c_db["voltage_lifetime"] = c_db.apply(lambda x, v_i_t=virtual_inner_max_temperature, lt_dto_list=lt_dto_list: voltage_rating_due_to_lifetime(
+            target_lifetime=c_requirements.lifetime_h, operating_temperature=float(v_i_t),
+            voltage_rating=x["V_R_85degree"], lt_dto_list=lt_dto_list), axis=1)
+        c_db["factor_lifetime"] = c_db["voltage_lifetime"] / c_db["V_R_85degree"]
+
         # voltage: calculate the number of needed capacitors in a series connection
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
-        c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * \
+        c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
                                                                                      (1 + c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)

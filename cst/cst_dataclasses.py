@@ -35,6 +35,7 @@ class CapacitorRequirements:
     capacitor_type_list: list[CapacitorType]
     maximum_number_series_capacitors: int
     capacitor_tolerance_percent: CapacitanceTolerance
+    lifetime_h: float
 
 @dataclass
 class CalculatedRequirementsValues:
@@ -45,7 +46,7 @@ class CalculatedRequirementsValues:
 
 @dataclass
 class LifetimeDerating:
-    """Class to handle capacitor lifetime derating."""
+    """Class to handle capacitor lifetime_h derating."""
 
     voltage: float
     temperature: float

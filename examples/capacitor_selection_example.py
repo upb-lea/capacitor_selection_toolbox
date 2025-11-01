@@ -1,4 +1,6 @@
 """Capacitor selection example."""
+# python libraries
+import logging
 
 # 3rd party libraries
 import numpy as np
@@ -6,6 +8,9 @@ from matplotlib import pyplot as plt
 
 # own libraries
 import cst
+
+# configure logging to show femmt terminal output
+logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 # capacitor requirements
 capacitor_requirements = cst.CapacitorRequirements(
@@ -18,7 +23,8 @@ capacitor_requirements = cst.CapacitorRequirements(
     voltage_safety_margin_percentage=10,
     capacitor_type_list=[cst.CapacitorType.FilmCapacitor],
     maximum_number_series_capacitors=2,
-    capacitor_tolerance_percent=cst.CapacitanceTolerance.TenPercent
+    capacitor_tolerance_percent=cst.CapacitanceTolerance.TenPercent,
+    lifetime_h=30_000
 )
 
 # capacitor pareto plane calculation

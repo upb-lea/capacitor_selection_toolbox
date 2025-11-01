@@ -6,6 +6,7 @@ import logging
 
 # 3rd party libraries
 import pandas as pd
+import numpy as np
 
 # own libraries
 from cst import constants as const
@@ -92,7 +93,7 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_derating.csv")
     c_derating = pd.read_csv(database_path, sep=';', decimal=',')
 
-    # lifetime data
+    # lifetime_h data
     lt_dto_list: list[LifetimeDerating] = []
     lt_dto: LifetimeDerating
     lifetime_data_files = pathlib.Path(pathlib.PurePath(path.parents[0])).glob(f"{capacitor_series_name}_lifetime*")
@@ -105,7 +106,10 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
             unique_voltage_values = c_df["V_R_85degree"].unique()
             for unique_voltage_value in unique_voltage_values:
                 lifetime_df = pd.read_csv(lifetime_data_file, decimal=',', delimiter=';')
-                # modify lifetime df, as there is a factor and no absolute voltage level given
+                # derating factor is maximum 1. May greater due to digitizing error from datasheet. Clip value to 1.
+                lifetime_df["voltage"] = np.clip(lifetime_df["voltage"], a_min=0, a_max=1)
+
+                # modify lifetime_h df, as there is a factor and no absolute voltage level given
                 lifetime_df["voltage"] = unique_voltage_value * lifetime_df["voltage"]
                 lt_dto = LifetimeDerating(temperature=temperature, voltage=unique_voltage_value,
                                           lifetime=lifetime_df)
