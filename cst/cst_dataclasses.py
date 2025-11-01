@@ -6,6 +6,7 @@ from enum import IntEnum
 
 # 3rd party libraries
 import numpy as np
+import pandas as pd
 
 class CapacitorType(IntEnum):
     """Enum for the capacitor type."""
@@ -41,3 +42,11 @@ class CalculatedRequirementsValues:
 
     requirement_c_min: float
     i_rms: float
+
+@dataclass
+class LifetimeDerating:
+    """Class to handle capacitor lifetime derating."""
+
+    voltage: float
+    temperature: float
+    lifetime: pd.DataFrame

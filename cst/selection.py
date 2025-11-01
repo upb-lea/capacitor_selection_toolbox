@@ -130,14 +130,14 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
     :return: thermal equivalent coefficient
     :rtype: float
     """
-    thermal_coefficient = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
+    thermal_coefficient_series = df["g_in_W_degreeCelsius"].loc[(df["width_in_m"] == width) & (df["length_in_m"] == length) & (df["height_in_m"] == height)]
 
-    if len(thermal_coefficient.values) != 1:
+    if len(thermal_coefficient_series.values) != 1:
         thermal_coefficient = np.nan
         logger.info("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.\n"
                     f"{width=}, {height=}, {length=}")
     else:
-        thermal_coefficient = float(thermal_coefficient.values[0])
+        thermal_coefficient = float(thermal_coefficient_series.values[0])
 
     return float(thermal_coefficient)
 
@@ -177,11 +177,11 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
     for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
 
         # select all suitable capacitors including derating and thermal information from the database
-        c_db, c_thermal, c_derating = load_dc_film_capacitors(capacitor_series_name)
+        c_db, c_thermal, c_derating, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
 
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
-        # check for temperature derating. Maximum temperature raise for currently all available capacitors in the database is 15 degree
+        # check for temperature derating depending on the capacitor series
         delta_t_jc_max = series_values.loc[series_values["series"] == capacitor_series_name, "delta_t_jc"].values[0]
         delta_temperature_max = derating_factor ** 2 * delta_t_jc_max
 
