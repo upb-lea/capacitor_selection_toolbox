@@ -112,7 +112,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
 
 if __name__ == '__main__':
     import cst
-    c_df, sh_df, c_derating, l_dto_list = cst.load_dc_film_capacitors("B3271*P")
+    c_df, sh_df, c_derating, dvdt_df, l_dto_list = cst.load_dc_film_capacitors("B3271*P")
     voltage = voltage_rating_due_to_lifetime(target_lifetime=300_000, operating_temperature=86,
                                              lt_dto_list=l_dto_list, voltage_rating=825)
     print(f"{voltage=}")

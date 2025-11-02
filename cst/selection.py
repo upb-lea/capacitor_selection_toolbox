@@ -17,6 +17,7 @@ import cst.constants as const
 import cst.cost_models as cost
 from cst.current_capability import current_capability_film_capacitor
 from cst.lifetime import voltage_rating_due_to_lifetime
+from cst.dvdt import calc_parallel_capacitors_dvdt
 
 logger = logging.getLogger(__name__)
 
@@ -77,23 +78,35 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
         else:
             c_max = c_mid
 
+    # calculate maximum dv/dt at c_min
+    dvdt = new_current_sample_rate / c_mid
+    dvdt_max_at_c_min = np.max(dvdt)
+    print(f"{dvdt_max_at_c_min=}")
+
     i_rms = np.sqrt(np.mean(capacitor_requirements.current_waveform_for_op_max_current[1] ** 2))
 
     if debug:
-        fig, ax = plt.subplots(nrows=2, ncols=1)
+        fig, ax = plt.subplots(nrows=3, ncols=1)
         ax[0].plot(new_time_sample_rate, new_current_sample_rate)
         ax[1].plot(new_time_sample_rate, v_c_at_c_max, label="c_max")
         ax[1].plot(new_time_sample_rate, v_c_at_c_min, label="c_min")
         ax[1].plot(new_time_sample_rate, v_c_at_c_mid, label="c_mid")
+        ax[2].plot(new_time_sample_rate, dvdt, label="dv/dt c_mid")
 
         ax[0].grid()
+        ax[0].set_ylabel("Current / A")
         ax[1].grid()
+        ax[1].set_ylabel("Voltage / V")
+        ax[2].grid()
+        ax[2].set_ylabel("dv/dt")
+        ax[2].set_xlabel("time / s")
         plt.legend()
         plt.show()
 
     return CalculatedRequirementsValues(
         requirement_c_min=c_mid,
-        i_rms=i_rms
+        i_rms=i_rms,
+        dv_dt_max_at_c_min=dvdt_max_at_c_min
     )
 
 def get_temperature_current_derating_factor(ambient_temperature: float, df_derating: pd.DataFrame) -> float:
@@ -179,7 +192,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
-        c_db, c_thermal, c_derating, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
+        c_db, c_thermal, c_derating, dvdt_df, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
 
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
@@ -213,14 +226,23 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_db["in_parallel_needed"] = np.ceil(
             calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
+        # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
+        c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df: calc_parallel_capacitors_dvdt(
+            x["capacitance"], x["V_R_85degree"], x["in_series_needed"], dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
+
         # current: calculate the number of parallel capacitors needed to meet the current requirement
         c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
             order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
             axis=1)
 
+        # check if parallel capacitors due to current needed is more than due to capacitance needed
+        index_dvdt = c_db["in_parallel_needed_dvdt"] > c_db["in_parallel_needed"]
+        c_db.loc[index_dvdt, "in_parallel_needed"] = c_db.loc[index_dvdt, "in_parallel_needed_dvdt"]
+
+        # check if parallel capacitors due to current needed is more than due to capacitance needed
         index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
         c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
-        c_db = c_db.drop(columns=["parallel_current_capacitors_needed"])
+        c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
 
         # volume calculation
         c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]

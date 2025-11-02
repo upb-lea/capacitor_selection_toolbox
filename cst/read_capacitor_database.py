@@ -40,7 +40,7 @@ def get_str_value_from_str(text: str, start: str, end: str) -> str:
         logger.info("Delimiters not found")
     return res
 
-def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, list[LifetimeDerating]]:
+def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, list[LifetimeDerating]]:
     """
     Load dc film capacitors from the database.
 
@@ -119,11 +119,17 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
                                       lifetime=pd.read_csv(lifetime_data_file, decimal=',', delimiter=';'))
             lt_dto_list.append(lt_dto)
 
-    return c_df, sh_df, c_derating, lt_dto_list
+    # dv/dt rating
+    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_dvdt.csv")
+    dvdt_df = pd.read_csv(database_path, sep=';', decimal=',')
+    dvdt_df["dv/dt"] = dvdt_df["dv/dt V/us"] / const.MICRO_TO_NORM
+    dvdt_df = dvdt_df.drop(columns=["dv/dt V/us"])
+
+    return c_df, sh_df, c_derating, dvdt_df, lt_dto_list
 
 
 if __name__ == "__main__":
-    # c_df, sh_df, c_derating, l_dto_list = load_dc_film_capacitors("B3272*AGT")
-    c_df, sh_df, c_derating, l_dto_list = load_dc_film_capacitors("B3277*P")
+    # c_df, sh_df, c_derating, dvdt_df, l_dto_list = load_dc_film_capacitors("B3272*AGT")
+    c_df, sh_df, c_derating, dvdt_df, l_dto_list = load_dc_film_capacitors("B3277*P")
 
     print(f"{len(l_dto_list)=}")
