@@ -19,12 +19,12 @@ capacitor_requirements = cst.CapacitorRequirements(
     v_dc_for_op_max_current=700,
     current_waveform_for_op_max_voltage=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [8, 19, -8, -9, 8]]),
     v_dc_for_op_max_voltage=730,
-    temperature_ambient=40,
+    temperature_ambient=90,
     voltage_safety_margin_percentage=10,
     capacitor_type_list=[cst.CapacitorType.FilmCapacitor],
     maximum_number_series_capacitors=2,
     capacitor_tolerance_percent=cst.CapacitanceTolerance.TenPercent,
-    lifetime_h=30_000
+    lifetime_h=300_000
 )
 
 # capacitor pareto plane calculation

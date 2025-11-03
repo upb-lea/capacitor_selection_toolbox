@@ -81,7 +81,6 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
     # calculate maximum dv/dt at c_min
     dvdt = new_current_sample_rate / c_mid
     dvdt_max_at_c_min = np.max(dvdt)
-    print(f"{dvdt_max_at_c_min=}")
 
     i_rms = np.sqrt(np.mean(capacitor_requirements.current_waveform_for_op_max_current[1] ** 2))
 
@@ -123,7 +122,7 @@ def get_temperature_current_derating_factor(ambient_temperature: float, df_derat
     derating_factor: float
     if ambient_temperature < df_derating["temperature"][0]:
         derating_factor = 1
-    elif ambient_temperature > df_derating["temperature"][-1]:
+    elif ambient_temperature > df_derating["temperature"].iloc[-1]:
         derating_factor = 0
     else:
         derating_factor = np.interp(ambient_temperature, df_derating["temperature"], df_derating["derating_factor"])

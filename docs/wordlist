@@ -27,6 +27,7 @@ numpy
 pandas
 DataFrame
 dataframe
+dataframes
 ffT
 FFT
 fft
