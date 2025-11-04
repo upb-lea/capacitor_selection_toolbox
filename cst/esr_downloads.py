@@ -39,7 +39,12 @@ def _download_file(url: str, save_path: str) -> None:
 
 
 def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CAPACITOR_SERIES_NAME_LIST) -> None:
-    """Download ESR over frequency data from the manufacturers homepage."""
+    """
+    Download ESR over frequency data from the manufacturers homepage.
+
+    :param capacitor_series_name_list: list of capacitor series names to download
+    :type capacitor_series_name_list: list[str]
+    """
     for capacitor_series_name in capacitor_series_name_list:
         c_db, c_thermal, c_derating, _, _ = load_dc_film_capacitors(capacitor_series_name)
 
