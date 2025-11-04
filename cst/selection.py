@@ -212,6 +212,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_db["voltage_lifetime"] = c_db.apply(lambda x, v_i_t=virtual_inner_max_temperature, lt_dto_list=lt_dto_list: voltage_rating_due_to_lifetime(
             target_lifetime=c_requirements.lifetime_h, operating_temperature=float(v_i_t),
             voltage_rating=x["V_R_85degree"], lt_dto_list=lt_dto_list), axis=1)
+        c_db = c_db.drop(c_db[np.isnan(c_db["voltage_lifetime"])].index)
+
         c_db["factor_lifetime"] = c_db["voltage_lifetime"] / c_db["V_R_85degree"]
 
         # voltage: calculate the number of needed capacitors in a series connection

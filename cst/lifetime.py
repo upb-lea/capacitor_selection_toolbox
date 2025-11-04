@@ -9,49 +9,30 @@ from matplotlib import pyplot as plt
 # own libraries
 from cst.cst_dataclasses import LifetimeDerating
 
-class FatigueCurve:
+def get_voltage_from_semilogx_lifetime(lifetime: float, lifetime_vec: pd.Series, voltage_vec: pd.Series) -> np.ndarray:
     """
-    Base class for a fatigue curve.
+    Semilogarithmic interpolation from voltage over lifetime curve to get the maximum allowed voltage (to reach the lifetime).
 
-    source:
+    close to:
     https://www.robsiegwart.com/interpolating-logarithmic-plots-for-fatigue-analysis.html
-
-    points : list
-            A list containing (lifetime_h,voltage) data point pairs (2+)
+    :param lifetime: lifetime in hours
+    :type lifetime: float
+    :param lifetime_vec: vector lifetime
+    :type lifetime_vec: pd.Series
+    :param voltage_vec: vector voltage
+    :type voltage_vec: pd.Series
+    :return:
     """
-
-    def __init__(self, points):
-        self.N, self.S = list(zip(*points, strict=True))
-        self.N = np.asarray(self.N)
-        self.S = np.asarray(self.S)
-        self.logN = np.log10(self.N)
-        self.logS = np.log10(self.S)
-
-class SemiLogCurve(FatigueCurve):
-    """Class for logarithmic interpolation."""
-
-    def __init__(self, points):
-        super().__init__(points)
-        self.getS_f = interp1d(self.logN, self.S)
-        self.getN_f = interp1d(self.S, self.logN)
-
-    def get_voltage(self, lifetime: float) -> np.ndarray:
-        """
-        Interpolate stress from cycles.
-
-        :param lifetime: capacitor lifetime_h
-        :type lifetime: float
-        """
-        try:
-            S = self.getS_f(np.log10(lifetime))
-        except:
-            S = np.nan
-        return np.array([S])
-
-    __call__ = get_voltage
+    log_lifetime_vec = np.log10(lifetime_vec)
+    try:
+        f = interp1d(log_lifetime_vec, voltage_vec)
+        voltage = f(np.log10(lifetime))
+    except:
+        voltage = np.nan
+    return np.array([voltage])
 
 def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature: float, voltage_rating: float,
-                                   lt_dto_list: list[LifetimeDerating], is_plot: bool = False) -> float:
+                                   lt_dto_list: list[LifetimeDerating], is_debug: bool = False) -> float:
     """
     Voltage dearting due to capacitor lifetime_h.
 
@@ -63,8 +44,8 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
     :type voltage_rating: float
     :param lt_dto_list: lifetime_h DTO list
     :type lt_dto_list: list[LifetimeDerating]
-    :param is_plot: True to show interpolation plot
-    :type is_plot: bool
+    :param is_debug: True to show interpolation plot
+    :type is_debug: bool
     :return: voltage
     :rtype: float
     """
@@ -122,11 +103,9 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
         delta_temperature = np.abs(operating_temperature - temperature_mid)
 
     # logarithmic voltage interpolation for the voltage
-    zip_curve = zip(df_mid["lifetime"], df_mid["voltage"], strict=True)
-    curve = SemiLogCurve(list(zip_curve))
-    voltage = curve.get_voltage(target_lifetime)
+    voltage = get_voltage_from_semilogx_lifetime(target_lifetime, df_mid["lifetime"], df_mid["voltage"])
 
-    if is_plot:
+    if is_debug:
         plt.semilogx(df_lower["lifetime"], df_lower["voltage"], label=f"{temperature_lower} °C")
         plt.semilogx(df_higher["lifetime"], df_higher["voltage"], label=f"{temperature_higher} °C")
         plt.semilogx(df_mid["lifetime"], df_mid["voltage"], label=f"{temperature_mid} °C")
