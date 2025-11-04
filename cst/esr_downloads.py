@@ -43,7 +43,7 @@ def download_esr_csv_files() -> None:
     for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
         c_db, c_thermal, c_derating, _, _ = load_dc_film_capacitors(capacitor_series_name)
 
-        esr_folder_name = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_FOLDER)
+        esr_folder_name = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_DIRECTORY)
         if not esr_folder_name.exists():
             pathlib.Path.mkdir(esr_folder_name)
 
@@ -58,7 +58,7 @@ def download_esr_csv_files() -> None:
             ordering_code_short = ordering_code.replace("000", "")
 
             # generate csv file path
-            save_path = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_FOLDER, f"{ordering_code}.csv")
+            save_path = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_DIRECTORY, f"{ordering_code}.csv")
             if save_path.exists():
                 logger.info(f"{save_path} already exists. Skip download.")
             else:

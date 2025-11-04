@@ -52,7 +52,9 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     # capacitor data
     path = pathlib.Path(__file__)
 
-    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}.csv")
+    film_capacitor_series_path = pathlib.PurePath(path.parents[0], const.FOIL_CAPACITOR_DATA_DIRECTORY, capacitor_series_name)
+
+    database_path = pathlib.PurePath(film_capacitor_series_path, f"{capacitor_series_name}.csv")
     c_df = pd.read_csv(database_path, sep=';', decimal='.')
 
     # drop unused columns to reduce the data set
@@ -80,7 +82,7 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     c_df["ordering code"] = c_df["ordering code"].apply(lambda x: x.replace("*", ""))
 
     # self heating data
-    self_heating_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_self_heating.csv")
+    self_heating_path = pathlib.PurePath(film_capacitor_series_path, f"{capacitor_series_name}_self_heating.csv")
     sh_df = pd.read_csv(self_heating_path, sep=';', decimal=',')
 
     sh_df["width_in_m"] = sh_df["width_in_mm"].astype(float) * const.MILLI_TO_NORM
@@ -90,13 +92,13 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     sh_df = sh_df.drop(columns=["width_in_mm", "height_in_mm", "length_in_mm", "g_in_mW_degreeCelsius"])
 
     # derating data
-    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_derating.csv")
+    database_path = pathlib.PurePath(film_capacitor_series_path, f"{capacitor_series_name}_derating.csv")
     c_derating = pd.read_csv(database_path, sep=';', decimal=',')
 
     # lifetime_h data
     lt_dto_list: list[LifetimeDerating] = []
     lt_dto: LifetimeDerating
-    lifetime_data_files = pathlib.Path(pathlib.PurePath(path.parents[0])).glob(f"{capacitor_series_name}_lifetime*")
+    lifetime_data_files = pathlib.Path(film_capacitor_series_path).glob(f"{capacitor_series_name}_lifetime*")
     for lifetime_data_file in lifetime_data_files:
         voltage_str = get_str_value_from_str(lifetime_data_file.stem, start="lifetime_", end="V_")
         temperature = float(get_str_value_from_str(lifetime_data_file.stem, start="V_", end="degree"))
@@ -120,7 +122,7 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
             lt_dto_list.append(lt_dto)
 
     # dv/dt rating
-    database_path = pathlib.PurePath(path.parents[0], f"{capacitor_series_name}_dvdt.csv")
+    database_path = pathlib.PurePath(film_capacitor_series_path, f"{capacitor_series_name}_dvdt.csv")
     dvdt_df = pd.read_csv(database_path, sep=';', decimal=',')
     dvdt_df["dv/dt"] = dvdt_df["dv/dt V/us"] / const.MICRO_TO_NORM
     dvdt_df = dvdt_df.drop(columns=["dv/dt V/us"])

@@ -24,11 +24,12 @@ capacitor_requirements = cst.CapacitorRequirements(
     capacitor_type_list=[cst.CapacitorType.FilmCapacitor],
     maximum_number_series_capacitors=2,
     capacitor_tolerance_percent=cst.CapacitanceTolerance.TenPercent,
-    lifetime_h=300_000
+    lifetime_h=30_000
 )
 
 # capacitor pareto plane calculation
 c_name_list, c_db_list = cst.select_capacitors(capacitor_requirements)
+c_name_list[1] = c_name_list[1].replace("B3272*AGT", "B3272*A/G/T")
 color_list = [cst.gnome_colors["black"], cst.gnome_colors["red"], cst.gnome_colors["blue"]]
 
 # plot capacitor pareto plane
