@@ -223,57 +223,63 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
-        # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
-        c_db["in_parallel_needed"] = np.ceil(
-            calculated_boundaries.requirement_c_min / (c_db["capacitance"] * (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
+        if len(c_db["capacitance"]) == 0:
+            # all capacitors are sorted out due to lifetime ratings. Add empty keys
+            c_db["volume_total"] = np.nan
+            c_db["power_loss_total"] = np.nan
+        else:
+            # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
+            c_db["in_parallel_needed"] = np.ceil(
+                calculated_boundaries.requirement_c_min / (c_db["capacitance"] *
+                                                           (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
-        # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
-        c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df: calc_parallel_capacitors_dvdt(
-            x["capacitance"], x["V_R_85degree"], x["in_series_needed"], dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
+            # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
+            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df: calc_parallel_capacitors_dvdt(
+                x["capacitance"], x["V_R_85degree"], x["in_series_needed"], dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
 
-        # current: calculate the number of parallel capacitors needed to meet the current requirement
-        c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
-            order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
-            axis=1)
+            # current: calculate the number of parallel capacitors needed to meet the current requirement
+            c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
+                order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
+                axis=1)
 
-        # check if parallel capacitors due to current needed is more than due to capacitance needed
-        index_dvdt = c_db["in_parallel_needed_dvdt"] > c_db["in_parallel_needed"]
-        c_db.loc[index_dvdt, "in_parallel_needed"] = c_db.loc[index_dvdt, "in_parallel_needed_dvdt"]
+            # check if parallel capacitors due to current needed is more than due to capacitance needed
+            index_dvdt = c_db["in_parallel_needed_dvdt"] > c_db["in_parallel_needed"]
+            c_db.loc[index_dvdt, "in_parallel_needed"] = c_db.loc[index_dvdt, "in_parallel_needed_dvdt"]
 
-        # check if parallel capacitors due to current needed is more than due to capacitance needed
-        index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
-        c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
-        c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
+            # check if parallel capacitors due to current needed is more than due to capacitance needed
+            index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
+            c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
+            c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
 
-        # volume calculation
-        c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+            # volume calculation
+            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-        # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
-        # ESL_total = L * n_serial / n_parallel
-        # C_total = C * n_parallel / n_serial
-        # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
-        c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-        c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
+            # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+            # ESL_total = L * n_serial / n_parallel
+            # C_total = C * n_parallel / n_serial
+            # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
+            c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
+            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
 
-        # loss calculation per capacitor
-        c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                                          x["in_parallel_needed"]), axis=1)
-        # loss calculation for all capacitors
-        c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+            # loss calculation per capacitor
+            c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
+                                                                                              x["in_parallel_needed"]), axis=1)
+            # loss calculation for all capacitors
+            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
-        # self heating calculation
-        # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-        c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
-            c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
-        c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
-        c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+            # self heating calculation
+            # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
+            c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
+                c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+            c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
+            c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
 
-        # drop too high self-heated capacitors
-        c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+            # drop too high self-heated capacitors
+            c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
 
-        # calculate component cost according to cost models
-        c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
-            c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
+            # calculate component cost according to cost models
+            c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
+                c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
 
         c_db.to_csv(f"results_{capacitor_series_name}.csv")
 
