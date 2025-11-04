@@ -14,13 +14,18 @@ import cst.constants as const
 #     leakage_current = 1
 #     return leakage_current
 
-def read_equal_series_resistance(order_number: str) -> pd.DataFrame:
+def read_capacitor_frequency_dependent_limits(order_number: str) -> pd.DataFrame:
     """
-    Read the frequency-dependent equivalent series resistance (ESR) from csv file to a pandas data frame.
+    Read the frequency-dependent limits from csv file to a pandas data frame.
+
+    This contains:
+     * frequency-dependent equivalent series resistance (ESR)
+     * frequency-dependent current capability
+     * frequency-dependent AC RMS voltage
 
     :param order_number: order number
     :type order_number: str
-    :return: frequency-dependent ESR in a pandas data frame
+    :return: frequency-dependent ESR, current capability and AC RMS voltage in a pandas data frame
     :rtype: pandas.DataFrame
     """
     path = pathlib.Path(__file__)
@@ -51,9 +56,10 @@ def power_loss_film_capacitor(order_number: str, frequency_list: list[float], cu
     :rtype: float
     """
     order_number = order_number.replace("+", "K")
+    order_number = order_number.replace("*", "")
 
     # read ESR file
-    esr_df = read_equal_series_resistance(order_number)
+    esr_df = read_capacitor_frequency_dependent_limits(order_number)
 
     esr_losses = 0.0
     for count_frequency, frequency in enumerate(frequency_list):

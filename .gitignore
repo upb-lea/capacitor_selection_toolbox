@@ -13,3 +13,6 @@ results/
 dictionary.dic
 workspace/
 cst/esr_downloads/*
+*.pdf
+*.ods
+examples/*.csv

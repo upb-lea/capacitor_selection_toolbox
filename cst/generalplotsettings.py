@@ -1,0 +1,27 @@
+"""Set general plot settings, like LaTeX font."""
+# 3rd party libraries
+from matplotlib import pyplot as plt
+
+def global_plot_settings_font_latex() -> None:
+    """Set the plot fonts to LaTeX-font."""
+    plt.rcParams.update({
+        "text.usetex": True,
+        "font.family": "serif",
+        "font.serif": ["Palatino"],
+    })
+
+
+def global_plot_settings_font_sansserif() -> None:
+    """Set the plot fonts to Sans-Serif-Font."""
+    plt.rcParams.update({
+        "text.usetex": True,
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Helvetica"]})
+
+def update_font_size(font_size: int = 11) -> None:
+    """Update the figure font size.
+
+    :param font_size: font size
+    :type font_size: int
+    """
+    plt.rcParams.update({'font.size': font_size})

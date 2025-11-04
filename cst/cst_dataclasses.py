@@ -6,6 +6,7 @@ from enum import IntEnum
 
 # 3rd party libraries
 import numpy as np
+import pandas as pd
 
 class CapacitorType(IntEnum):
     """Enum for the capacitor type."""
@@ -33,7 +34,8 @@ class CapacitorRequirements:
     voltage_safety_margin_percentage: float
     capacitor_type_list: list[CapacitorType]
     maximum_number_series_capacitors: int
-    capacitor_tolerance: CapacitanceTolerance
+    capacitor_tolerance_percent: CapacitanceTolerance
+    lifetime_h: float
 
 @dataclass
 class CalculatedRequirementsValues:
@@ -41,3 +43,12 @@ class CalculatedRequirementsValues:
 
     requirement_c_min: float
     i_rms: float
+    dv_dt_max_at_c_min: float
+
+@dataclass
+class LifetimeDerating:
+    """Class to handle capacitor lifetime_h derating."""
+
+    voltage: float
+    temperature: float
+    lifetime: pd.DataFrame
