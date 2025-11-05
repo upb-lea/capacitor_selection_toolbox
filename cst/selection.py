@@ -230,7 +230,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         else:
             # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
             c_db["in_parallel_needed"] = np.ceil(
-                calculated_boundaries.requirement_c_min / (c_db["capacitance"] *
+                calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
                                                            (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
             # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
