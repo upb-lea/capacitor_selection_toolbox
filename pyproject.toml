@@ -1,6 +1,6 @@
 [project]
-name = "cstpe"
-version = "0.1.0"
+name = "pecst"
+version = "0.1.1"
 authors = [
     { name = "UPB-LEA" },
 ]
@@ -35,6 +35,8 @@ packages = ["pecst/"]
 [tool.hatch.build.targets.sdist]
 include = [
     "pecst/*.py",
+    "pecst/foil_capacitor_data/*.csv",
+    "pecst/foil_capacitor_data/*/*.csv",
     "tests",
     "requirements.txt"
 ]

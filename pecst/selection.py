@@ -176,10 +176,12 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
     :rtype: pandas.DataFrame
     """
     # calculate minimum required capacitance and RMS current
+    logger.info("Calculate requirements and values from given input data.")
     calculated_boundaries = calculate_from_requirements(c_requirements)
 
     capacitor_df_list = []
 
+    logger.info("FFT")
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
