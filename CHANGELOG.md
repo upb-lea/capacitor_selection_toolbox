@@ -7,16 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.0.2] - 2024-05-19
+## [0.1.1] - 2025-11-05
 ### Added
  - Fully automated PyPI package upload
 
-
-## [0.0.1] - 2024-05-19
-
+## [0.1.0] - 2025-11-05
 ### Added
- - Initial release 
+ - Initial release featuring foil capacitor selection for power electronics applications 
 
-[unreleased]: https://github.com/upb-lea/KiClearance/compare/0.0.2...HEAD
-[0.0.2]: https://github.com/upb-lea/KiClearance/compare/0.0.1...0.0.2
-[0.0.1]: https://github.com/upb-lea/KiClearance/releases/tag/0.0.1
+[unreleased]: https://github.com/upb-lea/capacitor_selection_toolbox/compare/0.1.1...HEAD
+[0.1.1]: https://github.com/upb-lea/capacitor_selection_toolbox/compare/0.1.0...0.1.1
+[0.1.0]: https://github.com/upb-lea/capacitor_selection_toolbox/releases/tag/0.1.0

@@ -44,5 +44,5 @@ Output:
 
 Quick start
 ---------------------------------------
- * run the `automated download of ESR files<https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/download_esr_files.py>`_.
- * run the `Example capacitor selection file<https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/capacitor_selection_example.py>`_.
+ * run the `automated download of ESR files <https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/download_esr_files.py>`_.
+ * run the `Example capacitor selection file <https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/capacitor_selection_example.py>`_.
