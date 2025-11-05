@@ -16,3 +16,5 @@ pecst/esr_downloads/*
 *.pdf
 *.ods
 examples/*.csv
+dist/
+gpgit/
