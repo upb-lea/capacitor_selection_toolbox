@@ -1,0 +1,868 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Function Description &mdash; Power Electronics Capacitor Selection Toolbox 2025 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=cb975c41"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Power Electronics Capacitor Selection Toolbox (PE-CST) documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Power Electronics Capacitor Selection Toolbox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Function Description</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.CalculatedRequirementsValues"><code class="docutils literal notranslate"><span class="pre">CalculatedRequirementsValues</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CalculatedRequirementsValues.dv_dt_max_at_c_min"><code class="docutils literal notranslate"><span class="pre">CalculatedRequirementsValues.dv_dt_max_at_c_min</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CalculatedRequirementsValues.i_rms"><code class="docutils literal notranslate"><span class="pre">CalculatedRequirementsValues.i_rms</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CalculatedRequirementsValues.requirement_c_min"><code class="docutils literal notranslate"><span class="pre">CalculatedRequirementsValues.requirement_c_min</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.CapacitanceTolerance"><code class="docutils literal notranslate"><span class="pre">CapacitanceTolerance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitanceTolerance.FivePercent"><code class="docutils literal notranslate"><span class="pre">CapacitanceTolerance.FivePercent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitanceTolerance.TenPercent"><code class="docutils literal notranslate"><span class="pre">CapacitanceTolerance.TenPercent</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.CapacitorRequirements"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.capacitor_tolerance_percent"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.capacitor_tolerance_percent</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.capacitor_type_list"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.capacitor_type_list</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.current_waveform_for_op_max_current"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.current_waveform_for_op_max_current</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.current_waveform_for_op_max_voltage"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.current_waveform_for_op_max_voltage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.lifetime_h"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.lifetime_h</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.maximum_number_series_capacitors"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.maximum_number_series_capacitors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.maximum_peak_to_peak_voltage_ripple"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.maximum_peak_to_peak_voltage_ripple</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.temperature_ambient"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.temperature_ambient</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.v_dc_for_op_max_current"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.v_dc_for_op_max_current</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.v_dc_for_op_max_voltage"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.v_dc_for_op_max_voltage</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorRequirements.voltage_safety_margin_percentage"><code class="docutils literal notranslate"><span class="pre">CapacitorRequirements.voltage_safety_margin_percentage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.CapacitorType"><code class="docutils literal notranslate"><span class="pre">CapacitorType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorType.ElectrolyticCapacitor"><code class="docutils literal notranslate"><span class="pre">CapacitorType.ElectrolyticCapacitor</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.CapacitorType.FilmCapacitor"><code class="docutils literal notranslate"><span class="pre">CapacitorType.FilmCapacitor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.IntEnum"><code class="docutils literal notranslate"><span class="pre">IntEnum</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.LifetimeDerating"><code class="docutils literal notranslate"><span class="pre">LifetimeDerating</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.LifetimeDerating.lifetime"><code class="docutils literal notranslate"><span class="pre">LifetimeDerating.lifetime</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.LifetimeDerating.temperature"><code class="docutils literal notranslate"><span class="pre">LifetimeDerating.temperature</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.LifetimeDerating.voltage"><code class="docutils literal notranslate"><span class="pre">LifetimeDerating.voltage</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.calc_parallel_capacitors_dvdt"><code class="docutils literal notranslate"><span class="pre">calc_parallel_capacitors_dvdt()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.calculate_from_requirements"><code class="docutils literal notranslate"><span class="pre">calculate_from_requirements()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.cost_electrolytic_capacitor"><code class="docutils literal notranslate"><span class="pre">cost_electrolytic_capacitor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.cost_film_capacitor"><code class="docutils literal notranslate"><span class="pre">cost_film_capacitor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.current_capability_film_capacitor"><code class="docutils literal notranslate"><span class="pre">current_capability_film_capacitor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.dataclass"><code class="docutils literal notranslate"><span class="pre">dataclass()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.download_esr_csv_files"><code class="docutils literal notranslate"><span class="pre">download_esr_csv_files()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.fft"><code class="docutils literal notranslate"><span class="pre">fft()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.get_equivalent_heat_coefficient"><code class="docutils literal notranslate"><span class="pre">get_equivalent_heat_coefficient()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.get_str_value_from_str"><code class="docutils literal notranslate"><span class="pre">get_str_value_from_str()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.get_temperature_current_derating_factor"><code class="docutils literal notranslate"><span class="pre">get_temperature_current_derating_factor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.get_voltage_from_semilogx_lifetime"><code class="docutils literal notranslate"><span class="pre">get_voltage_from_semilogx_lifetime()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.global_plot_settings_font_latex"><code class="docutils literal notranslate"><span class="pre">global_plot_settings_font_latex()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.global_plot_settings_font_sansserif"><code class="docutils literal notranslate"><span class="pre">global_plot_settings_font_sansserif()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.integrate"><code class="docutils literal notranslate"><span class="pre">integrate()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.interp1d"><code class="docutils literal notranslate"><span class="pre">interp1d</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.interp1d.fill_value"><code class="docutils literal notranslate"><span class="pre">interp1d.fill_value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.interp1d.__call__"><code class="docutils literal notranslate"><span class="pre">interp1d.__call__()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pecst.interp1d.dtype"><code class="docutils literal notranslate"><span class="pre">interp1d.dtype</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">interp1d.fill_value</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.load_dc_film_capacitors"><code class="docutils literal notranslate"><span class="pre">load_dc_film_capacitors()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.power_loss_film_capacitor"><code class="docutils literal notranslate"><span class="pre">power_loss_film_capacitor()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.read_capacitor_frequency_dependent_limits"><code class="docutils literal notranslate"><span class="pre">read_capacitor_frequency_dependent_limits()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.select_capacitors"><code class="docutils literal notranslate"><span class="pre">select_capacitors()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.series_in_order_number"><code class="docutils literal notranslate"><span class="pre">series_in_order_number()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.update_font_size"><code class="docutils literal notranslate"><span class="pre">update_font_size()</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pecst.voltage_rating_due_to_lifetime"><code class="docutils literal notranslate"><span class="pre">voltage_rating_due_to_lifetime()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Power Electronics Capacitor Selection Toolbox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Function Description</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/intro.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-pecst">
+<span id="function-description"></span><h1>Function Description<a class="headerlink" href="#module-pecst" title="Link to this heading"></a></h1>
+<p>Initialize the package.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.CalculatedRequirementsValues">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">CalculatedRequirementsValues</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">requirement_c_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i_rms</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dv_dt_max_at_c_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.CalculatedRequirementsValues" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>From input values calculated values or requirements.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CalculatedRequirementsValues.dv_dt_max_at_c_min">
+<span class="sig-name descname"><span class="pre">dv_dt_max_at_c_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CalculatedRequirementsValues.dv_dt_max_at_c_min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CalculatedRequirementsValues.i_rms">
+<span class="sig-name descname"><span class="pre">i_rms</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CalculatedRequirementsValues.i_rms" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CalculatedRequirementsValues.requirement_c_min">
+<span class="sig-name descname"><span class="pre">requirement_c_min</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CalculatedRequirementsValues.requirement_c_min" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.CapacitanceTolerance">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">CapacitanceTolerance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.CapacitanceTolerance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pecst.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Typical capacitance tolerance values as enum.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitanceTolerance.FivePercent">
+<span class="sig-name descname"><span class="pre">FivePercent</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#pecst.CapacitanceTolerance.FivePercent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitanceTolerance.TenPercent">
+<span class="sig-name descname"><span class="pre">TenPercent</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">10</span></em><a class="headerlink" href="#pecst.CapacitanceTolerance.TenPercent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">CapacitorRequirements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">maximum_peak_to_peak_voltage_ripple</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_waveform_for_op_max_current</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_dc_for_op_max_current</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_waveform_for_op_max_voltage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">v_dc_for_op_max_voltage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature_ambient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage_safety_margin_percentage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacitor_type_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pecst.CapacitorType" title="pecst.cst_dataclasses.CapacitorType"><span class="pre">CapacitorType</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maximum_number_series_capacitors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacitor_tolerance_percent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pecst.CapacitanceTolerance" title="pecst.cst_dataclasses.CapacitanceTolerance"><span class="pre">CapacitanceTolerance</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifetime_h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.CapacitorRequirements" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Input values and boundaries for the capacitor selection.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.capacitor_tolerance_percent">
+<span class="sig-name descname"><span class="pre">capacitor_tolerance_percent</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#pecst.CapacitanceTolerance" title="pecst.cst_dataclasses.CapacitanceTolerance"><span class="pre">CapacitanceTolerance</span></a></em><a class="headerlink" href="#pecst.CapacitorRequirements.capacitor_tolerance_percent" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.capacitor_type_list">
+<span class="sig-name descname"><span class="pre">capacitor_type_list</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pecst.CapacitorType" title="pecst.cst_dataclasses.CapacitorType"><span class="pre">CapacitorType</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pecst.CapacitorRequirements.capacitor_type_list" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.current_waveform_for_op_max_current">
+<span class="sig-name descname"><span class="pre">current_waveform_for_op_max_current</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.current_waveform_for_op_max_current" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.current_waveform_for_op_max_voltage">
+<span class="sig-name descname"><span class="pre">current_waveform_for_op_max_voltage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.current_waveform_for_op_max_voltage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.lifetime_h">
+<span class="sig-name descname"><span class="pre">lifetime_h</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.lifetime_h" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.maximum_number_series_capacitors">
+<span class="sig-name descname"><span class="pre">maximum_number_series_capacitors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.maximum_number_series_capacitors" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.maximum_peak_to_peak_voltage_ripple">
+<span class="sig-name descname"><span class="pre">maximum_peak_to_peak_voltage_ripple</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.maximum_peak_to_peak_voltage_ripple" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.temperature_ambient">
+<span class="sig-name descname"><span class="pre">temperature_ambient</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.temperature_ambient" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.v_dc_for_op_max_current">
+<span class="sig-name descname"><span class="pre">v_dc_for_op_max_current</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.v_dc_for_op_max_current" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.v_dc_for_op_max_voltage">
+<span class="sig-name descname"><span class="pre">v_dc_for_op_max_voltage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.v_dc_for_op_max_voltage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorRequirements.voltage_safety_margin_percentage">
+<span class="sig-name descname"><span class="pre">voltage_safety_margin_percentage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.CapacitorRequirements.voltage_safety_margin_percentage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.CapacitorType">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">CapacitorType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.CapacitorType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pecst.IntEnum" title="enum.IntEnum"><code class="xref py py-class docutils literal notranslate"><span class="pre">IntEnum</span></code></a></p>
+<p>Enum for the capacitor type.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorType.ElectrolyticCapacitor">
+<span class="sig-name descname"><span class="pre">ElectrolyticCapacitor</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#pecst.CapacitorType.ElectrolyticCapacitor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.CapacitorType.FilmCapacitor">
+<span class="sig-name descname"><span class="pre">FilmCapacitor</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#pecst.CapacitorType.FilmCapacitor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.IntEnum">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">IntEnum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_class_name</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">names</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.IntEnum" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">ReprEnum</span></code></p>
+<p>Enum where members are also (and must be) ints</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.LifetimeDerating">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">LifetimeDerating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voltage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.LifetimeDerating" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class to handle capacitor lifetime_h derating.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.LifetimeDerating.lifetime">
+<span class="sig-name descname"><span class="pre">lifetime</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">DataFrame</span></em><a class="headerlink" href="#pecst.LifetimeDerating.lifetime" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.LifetimeDerating.temperature">
+<span class="sig-name descname"><span class="pre">temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.LifetimeDerating.temperature" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.LifetimeDerating.voltage">
+<span class="sig-name descname"><span class="pre">voltage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#pecst.LifetimeDerating.voltage" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.calc_parallel_capacitors_dvdt">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">calc_parallel_capacitors_dvdt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacitance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rated_voltage</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_series</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dvdt_df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordering_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">calculated_boundaries</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pecst.CalculatedRequirementsValues" title="pecst.cst_dataclasses.CalculatedRequirementsValues"><span class="pre">CalculatedRequirementsValues</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#pecst.calc_parallel_capacitors_dvdt" title="Link to this definition"></a></dt>
+<dd><p>Calculate the number of parallel capacitors needed due to the maximum dv/dt requirement.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacitance</strong> (<em>float</em>) – capacitance in F</p></li>
+<li><p><strong>rated_voltage</strong> (<em>float</em>) – capacitors rated voltage in V</p></li>
+<li><p><strong>n_series</strong> (<em>int</em>) – number of capacitors in series connection</p></li>
+<li><p><strong>dvdt_df</strong> (<em>pd.DataFrame</em>) – dataframe with information about dv/dt limits</p></li>
+<li><p><strong>ordering_number</strong> (<em>str</em>) – capacitor ordering number</p></li>
+<li><p><strong>calculated_boundaries</strong> (<a class="reference internal" href="#pecst.CalculatedRequirementsValues" title="pecst.CalculatedRequirementsValues"><em>CalculatedRequirementsValues</em></a>) – Calculated boundaries</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of parallel capacitors needed due to dv/dt requirement</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.calculate_from_requirements">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">calculate_from_requirements</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacitor_requirements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pecst.CapacitorRequirements" title="pecst.cst_dataclasses.CapacitorRequirements"><span class="pre">CapacitorRequirements</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pecst.CalculatedRequirementsValues" title="pecst.cst_dataclasses.CalculatedRequirementsValues"><span class="pre">CalculatedRequirementsValues</span></a></span></span><a class="headerlink" href="#pecst.calculate_from_requirements" title="Link to this definition"></a></dt>
+<dd><p>Values and requirements for further calculations needed from the input values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>capacitor_requirements</strong> (<a class="reference internal" href="#pecst.CapacitorRequirements" title="pecst.CapacitorRequirements"><em>CapacitorRequirements</em></a>) – capacitor requirements and input values in a DTO</p></li>
+<li><p><strong>debug</strong> (<em>bool</em>) – True to show debug plots</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>calculated requirements and values (from input parameters)</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pecst.CalculatedRequirementsValues" title="pecst.CalculatedRequirementsValues">CalculatedRequirementsValues</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.cost_electrolytic_capacitor">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">cost_electrolytic_capacitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voltage_rated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacitance_rated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.cost_electrolytic_capacitor" title="Link to this definition"></a></dt>
+<dd><p>Calculate the cost in euro of a electrolytic capacitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>voltage_rated</strong> (<em>float</em>) – rated capacitor voltage in V</p></li>
+<li><p><strong>capacitance_rated</strong> (<em>float</em>) – rated capacitor capacitance in F</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cost of the capacitor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.cost_film_capacitor">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">cost_film_capacitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">voltage_rated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">capacitance_rated</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.cost_film_capacitor" title="Link to this definition"></a></dt>
+<dd><p>Calculate the cost in euro of a film capacitor.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>voltage_rated</strong> (<em>float</em>) – rated capacitor voltage in V</p></li>
+<li><p><strong>capacitance_rated</strong> (<em>float</em>) – rated capacitor capacitance in F</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Cost of the capacitor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.current_capability_film_capacitor">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">current_capability_film_capacitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_amplitude_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">derating_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#pecst.current_capability_film_capacitor" title="Link to this definition"></a></dt>
+<dd><p>Film capacitor power loss estimation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order_number</strong> (<em>str</em>) – capacitor order number</p></li>
+<li><p><strong>frequency_list</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – frequency in Hertz in a list</p></li>
+<li><p><strong>current_amplitude_list</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – current in ampere in a list</p></li>
+<li><p><strong>derating_factor</strong> (<em>float</em>) – derating factor</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>number of parallel capacitors needed due to current limit</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.dataclass">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">dataclass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cls</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">init</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">eq</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">unsafe_hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frozen</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">match_args</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kw_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">slots</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weakref_slot</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.dataclass" title="Link to this definition"></a></dt>
+<dd><p>Add dunder methods based on the fields defined in the class.</p>
+<p>Examines PEP 526 __annotations__ to determine fields.</p>
+<p>If init is true, an __init__() method is added to the class. If repr
+is true, a __repr__() method is added. If order is true, rich
+comparison dunder methods are added. If unsafe_hash is true, a
+__hash__() method is added. If frozen is true, fields may not be
+assigned to after instance creation. If match_args is true, the
+__match_args__ tuple is added. If kw_only is true, then by default
+all fields are keyword-only. If slots is true, a new class with a
+__slots__ attribute is returned.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.download_esr_csv_files">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">download_esr_csv_files</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacitor_series_name_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">['B3271*P',</span> <span class="pre">'B3272*AGT',</span> <span class="pre">'B3277*P']</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pecst.download_esr_csv_files" title="Link to this definition"></a></dt>
+<dd><p>Download ESR over frequency data from the manufacturers homepage.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>capacitor_series_name_list</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – list of capacitor series names to download</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.fft">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">fft</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">period_vector_t_i</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'no'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'rad'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f0</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'ffT'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'factor'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_value_factor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.01</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_value_harmonic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">tuple</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figure_directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#pecst.fft" title="Link to this definition"></a></dt>
+<dd><p>Calculate the FFT for a given input signal. Input signal is in vector format and should include one period.</p>
+<p>Output vector includes only frequencies with amplitudes &gt; 1% of input signal</p>
+<dl class="field-list simple">
+<dt class="field-odd">Minimal Example<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p></dd>
+</dl>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_waveform</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.34</span><span class="p">,</span> <span class="mf">3.14</span><span class="p">,</span> <span class="mf">4.48</span><span class="p">,</span> <span class="mf">6.28</span><span class="p">],[</span><span class="o">-</span><span class="mf">175.69</span><span class="p">,</span> <span class="mf">103.47</span><span class="p">,</span> <span class="mf">175.69</span><span class="p">,</span> <span class="o">-</span><span class="mf">103.47</span><span class="p">,</span><span class="o">-</span><span class="mf">175.69</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">fft</span><span class="p">(</span><span class="n">example_waveform</span><span class="p">,</span> <span class="n">plot</span><span class="o">=</span><span class="s1">&#39;yes&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;rad&#39;</span><span class="p">,</span> <span class="n">f0</span><span class="o">=</span><span class="mi">25000</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s1">&#39;ffT input current&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>period_vector_t_i</strong> (<em>np.array</em>) – numpy-array [[time-vector[,[current-vector]]. One period only</p></li>
+<li><p><strong>sample_factor</strong> (<em>int</em>) – f_sampling/f_period, defaults to 1000</p></li>
+<li><p><strong>plot</strong> (<em>str</em>) – insert anything else than “no” or ‘False’ to show a plot to visualize input and output</p></li>
+<li><p><strong>mode</strong> (<em>str</em>) – ‘rad’[default]: full period is 2*pi, ‘deg’: full period is 360°, ‘time’: time domain.</p></li>
+<li><p><strong>f0</strong> (<em>float</em>) – fundamental frequency. Needs to be set in ‘rad’- or ‘deg’-mode</p></li>
+<li><p><strong>title</strong> (<em>str</em>) – plot window title, defaults to ‘ffT’</p></li>
+<li><p><strong>filter_type</strong> (<em>str</em>) – ‘factor’[default] or ‘harmonic’ or ‘disabled’.</p></li>
+<li><p><strong>filter_value_factor</strong> (<em>float</em>) – filters out amplitude-values below a certain factor of max. input amplitude.
+Should be 0…1, default to 0.01 (1%)</p></li>
+<li><p><strong>filter_value_harmonic</strong> (<em>int</em>) – filters out harmonics up to a certain number. Default value is 100.
+Note: count 1 is DC component, count 2 is the fundamental frequency</p></li>
+<li><p><strong>figure_directory</strong> (<em>tuple</em>) – full path with file extension</p></li>
+<li><p><strong>figure_size</strong> (<em>tuple</em>) – None for auto-fit; fig_size for matplotlib (width, length)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>numpy-array [[frequency-vector],[amplitude-vector],[phase-vector]]</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray[list]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.get_equivalent_heat_coefficient">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">get_equivalent_heat_coefficient</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">width</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">length</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">height</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.get_equivalent_heat_coefficient" title="Link to this definition"></a></dt>
+<dd><p>Read the thermal equivalent heat coefficient (from data sheet).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>df</strong> (<em>pandas.DataFrame</em>) – dataframe with equivalent self-heating coefficient based on the capacitor housing dimensions.</p></li>
+<li><p><strong>width</strong> (<em>float</em>) – capacitor width in meter</p></li>
+<li><p><strong>length</strong> (<em>float</em>) – capacitor length in meter</p></li>
+<li><p><strong>height</strong> (<em>float</em>) – capacitor height in meter</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>thermal equivalent coefficient</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.get_str_value_from_str">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">get_str_value_from_str</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#pecst.get_str_value_from_str" title="Link to this definition"></a></dt>
+<dd><p>Get string value between start and end from a given string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em>) – text to find the values</p></li>
+<li><p><strong>start</strong> (<em>str</em>) – string in front of the string to return</p></li>
+<li><p><strong>end</strong> (<em>str</em>) – string directly after the string to return</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>string between start and end</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.get_temperature_current_derating_factor">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">get_temperature_current_derating_factor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ambient_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_derating</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.get_temperature_current_derating_factor" title="Link to this definition"></a></dt>
+<dd><p>Read the capacitors temperature derating factor from a look-up table (from data sheet).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ambient_temperature</strong> (<em>float</em>) – ambient temperature in degree Celsius</p></li>
+<li><p><strong>df_derating</strong> (<em>pd.DataFrame</em>) – dataframe with temperature derating information</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>derating factor</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.get_voltage_from_semilogx_lifetime">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">get_voltage_from_semilogx_lifetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lifetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lifetime_vec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage_vec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#pecst.get_voltage_from_semilogx_lifetime" title="Link to this definition"></a></dt>
+<dd><p>Semilogarithmic interpolation from voltage over lifetime curve to get the maximum allowed voltage (to reach the lifetime).</p>
+<p>close to:
+<a class="reference external" href="https://www.robsiegwart.com/interpolating-logarithmic-plots-for-fatigue-analysis.html">https://www.robsiegwart.com/interpolating-logarithmic-plots-for-fatigue-analysis.html</a>
+:param lifetime: lifetime in hours
+:type lifetime: float
+:param lifetime_vec: vector lifetime
+:type lifetime_vec: pd.Series
+:param voltage_vec: vector voltage
+:type voltage_vec: pd.Series
+:return:</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.global_plot_settings_font_latex">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">global_plot_settings_font_latex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pecst.global_plot_settings_font_latex" title="Link to this definition"></a></dt>
+<dd><p>Set the plot fonts to LaTeX-font.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.global_plot_settings_font_sansserif">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">global_plot_settings_font_sansserif</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pecst.global_plot_settings_font_sansserif" title="Link to this definition"></a></dt>
+<dd><p>Set the plot fonts to Sans-Serif-Font.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.integrate">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">integrate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#pecst.integrate" title="Link to this definition"></a></dt>
+<dd><p>Integrate a given time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>time</strong> (<em>np.ndarray</em>) – list of time</p></li>
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – list of data</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pecst.interp1d">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">interp1d</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kind</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'linear'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">copy</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bounds_error</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">nan</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_sorted</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pecst.interp1d" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">_Interpolator1D</span></code></p>
+<p>Interpolate a 1-D function (legacy).</p>
+<p><cite>x</cite> and <cite>y</cite> are arrays of values used to approximate some function f:
+<code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">f(x)</span></code>. This class returns a function whose call method uses
+interpolation to find the value of new points.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>(</em><em>npoints</em><em>, </em><em>) </em><em>array_like</em>) – A 1-D array of real values.</p></li>
+<li><p><strong>y</strong> (<em>(</em><em>...</em><em>, </em><em>npoints</em><em>, </em><em>...</em><em>) </em><em>array_like</em>) – A N-D array of real values. The length of <cite>y</cite> along the interpolation
+axis must be equal to the length of <cite>x</cite>. Use the <code class="docutils literal notranslate"><span class="pre">axis</span></code> parameter
+to select correct axis. Unlike other interpolators, the default
+interpolation axis is the last axis of <cite>y</cite>.</p></li>
+<li><p><strong>kind</strong> (<em>str</em><em> or </em><em>int</em><em>, </em><em>optional</em>) – Specifies the kind of interpolation as a string or as an integer
+specifying the order of the spline interpolator to use.
+The string has to be one of ‘linear’, ‘nearest’, ‘nearest-up’, ‘zero’,
+‘slinear’, ‘quadratic’, ‘cubic’, ‘previous’, or ‘next’. ‘zero’,
+‘slinear’, ‘quadratic’ and ‘cubic’ refer to a spline interpolation of
+zeroth, first, second or third order; ‘previous’ and ‘next’ simply
+return the previous or next value of the point; ‘nearest-up’ and
+‘nearest’ differ when interpolating half-integers (e.g. 0.5, 1.5)
+in that ‘nearest-up’ rounds up and ‘nearest’ rounds down. Default
+is ‘linear’.</p></li>
+<li><p><strong>axis</strong> (<em>int</em><em>, </em><em>optional</em>) – Axis in the <code class="docutils literal notranslate"><span class="pre">y</span></code> array corresponding to the x-coordinate values. Unlike
+other interpolators, defaults to <code class="docutils literal notranslate"><span class="pre">axis=-1</span></code>.</p></li>
+<li><p><strong>copy</strong> (<em>bool</em><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, the class makes internal copies of x and y. If <code class="docutils literal notranslate"><span class="pre">False</span></code>,
+references to <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are used if possible. The default is to copy.</p></li>
+<li><p><strong>bounds_error</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, a ValueError is raised any time interpolation is attempted on
+a value outside of the range of x (where extrapolation is
+necessary). If False, out of bounds values are assigned <cite>fill_value</cite>.
+By default, an error is raised unless <code class="docutils literal notranslate"><span class="pre">fill_value=&quot;extrapolate&quot;</span></code>.</p></li>
+<li><p><strong>fill_value</strong> (<em>array-like</em><em> or </em><em>(</em><em>array-like</em><em>, </em><em>array_like</em><em>) or </em><em>&quot;extrapolate&quot;</em><em>, </em><em>optional</em>) – <ul>
+<li><p>if a ndarray (or float), this value will be used to fill in for
+requested points outside of the data range. If not provided, then
+the default is NaN. The array-like must broadcast properly to the
+dimensions of the non-interpolation axes.</p></li>
+<li><p>If a two-element tuple, then the first element is used as a
+fill value for <code class="docutils literal notranslate"><span class="pre">x_new</span> <span class="pre">&lt;</span> <span class="pre">x[0]</span></code> and the second element is used for
+<code class="docutils literal notranslate"><span class="pre">x_new</span> <span class="pre">&gt;</span> <span class="pre">x[-1]</span></code>. Anything that is not a 2-element tuple (e.g.,
+list or ndarray, regardless of shape) is taken to be a single
+array-like argument meant to be used for both bounds as
+<code class="docutils literal notranslate"><span class="pre">below,</span> <span class="pre">above</span> <span class="pre">=</span> <span class="pre">fill_value,</span> <span class="pre">fill_value</span></code>. Using a two-element tuple
+or ndarray requires <code class="docutils literal notranslate"><span class="pre">bounds_error=False</span></code>.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 0.17.0.</span></p>
+</div>
+</li>
+<li><p>If “extrapolate”, then points outside the data range will be
+extrapolated.</p>
+<div class="versionadded">
+<p><span class="versionmodified added">Added in version 0.17.0.</span></p>
+</div>
+</li>
+</ul>
+</p></li>
+<li><p><strong>assume_sorted</strong> (<em>bool</em><em>, </em><em>optional</em>) – If False, values of <cite>x</cite> can be in any order and they are sorted first.
+If True, <cite>x</cite> has to be an array of monotonically increasing values.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.interp1d.fill_value">
+<span class="sig-name descname"><span class="pre">fill_value</span></span><a class="headerlink" href="#pecst.interp1d.fill_value" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pecst.interp1d.__call__">
+<span class="sig-name descname"><span class="pre">__call__</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pecst.interp1d.__call__" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="xref py py-obj docutils literal notranslate"><span class="pre">splrep</span></code>, <code class="xref py py-obj docutils literal notranslate"><span class="pre">splev</span></code></p>
+<dl class="simple">
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">UnivariateSpline</span></code></dt><dd><p>An object-oriented wrapper of the FITPACK routines.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp2d</span></code></dt><dd><p>2-D interpolation</p>
+</dd>
+</dl>
+</div>
+<p class="rubric">Notes</p>
+<p>Calling <cite>interp1d</cite> with NaNs present in input values results in
+undefined behaviour.</p>
+<p>Input values <cite>x</cite> and <cite>y</cite> must be convertible to <cite>float</cite> values like
+<cite>int</cite> or <cite>float</cite>.</p>
+<p>If the values in <cite>x</cite> are not unique, the resulting behavior is
+undefined and specific to the choice of <cite>kind</cite>, i.e., changing
+<cite>kind</cite> will change the behavior for duplicates.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">interpolate</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="o">/</span><span class="mf">3.0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">interpolate</span><span class="o">.</span><span class="n">interp1d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ynew</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">xnew</span><span class="p">)</span>   <span class="c1"># use interpolation function returned by `interp1d`</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;o&#39;</span><span class="p">,</span> <span class="n">xnew</span><span class="p">,</span> <span class="n">ynew</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pecst.interp1d.dtype">
+<span class="sig-name descname"><span class="pre">dtype</span></span><a class="headerlink" href="#pecst.interp1d.dtype" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">fill_value</span></span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>The fill value.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.load_dc_film_capacitors">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">load_dc_film_capacitors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">capacitor_series_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.cst_dataclasses.LifetimeDerating"><span class="pre">LifetimeDerating</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pecst.load_dc_film_capacitors" title="Link to this definition"></a></dt>
+<dd><p>Load dc film capacitors from the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>capacitor_series_name</strong> (<em>str</em>) – name of the capacitor series to download</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>unified list of film capacitors</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple[pandas.DataFrame, pandas.DataFrame, pandas.DataFrame]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.power_loss_film_capacitor">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">power_loss_film_capacitor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">current_amplitude_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_parallel_capacitors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.power_loss_film_capacitor" title="Link to this definition"></a></dt>
+<dd><p>Film capacitor power loss estimation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>order_number</strong> (<em>str</em>) – capacitor order number</p></li>
+<li><p><strong>frequency_list</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – frequency in Hertz in a list</p></li>
+<li><p><strong>current_amplitude_list</strong> (<em>list</em><em>[</em><em>float</em><em>]</em>) – current in ampere in a list</p></li>
+<li><p><strong>number_parallel_capacitors</strong> (<em>int</em>) – number of parallel capacitors to estimate the current per capacitor</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>loss of a single capacitor in Watt</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.read_capacitor_frequency_dependent_limits">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">read_capacitor_frequency_dependent_limits</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">order_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="headerlink" href="#pecst.read_capacitor_frequency_dependent_limits" title="Link to this definition"></a></dt>
+<dd><p>Read the frequency-dependent limits from csv file to a pandas data frame.</p>
+<dl class="simple">
+<dt>This contains:</dt><dd><ul class="simple">
+<li><p>frequency-dependent equivalent series resistance (ESR)</p></li>
+<li><p>frequency-dependent current capability</p></li>
+<li><p>frequency-dependent AC RMS voltage</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>order_number</strong> (<em>str</em>) – order number</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>frequency-dependent ESR, current capability and AC RMS voltage in a pandas data frame</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.select_capacitors">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">select_capacitors</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">c_requirements</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#pecst.CapacitorRequirements" title="pecst.cst_dataclasses.CapacitorRequirements"><span class="pre">CapacitorRequirements</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">DataFrame</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#pecst.select_capacitors" title="Link to this definition"></a></dt>
+<dd><p>Select suitable capacitors for the given application.</p>
+<dl class="simple">
+<dt>Function works as a “big filter”:</dt><dd><ul class="simple">
+<li><p>reads in all available capacitor data depending on the given capacitor type</p></li>
+<li><p>use series connection up to a maximum given number of capacitors to reach the operating voltage</p></li>
+<li><p>adds parallel capacitors to reach the minimum required capacitance value</p></li>
+<li><p>adds parallel capacitors to not raise the current limit per capacitor</p></li>
+<li><p>considers current derating according to the ambient temperature</p></li>
+<li><p>considers self-heating derating according to the ambient temperature</p></li>
+<li><p>sort out non-working designs/construction (raising voltage limits, raising temperature limits)</p></li>
+</ul>
+</dd>
+</dl>
+<p>The resulting pandas data frame contains the whole Pareto plane with all technically possible capacitor designs.
+Filtering e.g. for the Pareto front must be done in a separate step by the user.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>c_requirements</strong> (<a class="reference internal" href="#pecst.CapacitorRequirements" title="pecst.CapacitorRequirements"><em>CapacitorRequirements</em></a>) – capacitor requirements</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>pandas data frame with all possible capacitors.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.series_in_order_number">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">series_in_order_number</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">series_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordering_number</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pecst.series_in_order_number" title="Link to this definition"></a></dt>
+<dd><p>Check for series name in ordering number.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>series_name</strong> (<em>str</em>) – capacitor series name</p></li>
+<li><p><strong>ordering_number</strong> (<em>str</em>) – capacitor ordering number</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if capacitor series name is in capacitor ordering number, else False</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.update_font_size">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">update_font_size</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">font_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">11</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#pecst.update_font_size" title="Link to this definition"></a></dt>
+<dd><p>Update the figure font size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>font_size</strong> (<em>int</em>) – font size</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="pecst.voltage_rating_due_to_lifetime">
+<span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">voltage_rating_due_to_lifetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_lifetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operating_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage_rating</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lt_dto_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.cst_dataclasses.LifetimeDerating"><span class="pre">LifetimeDerating</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.voltage_rating_due_to_lifetime" title="Link to this definition"></a></dt>
+<dd><p>Voltage dearting due to capacitor lifetime_h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>target_lifetime</strong> (<em>float</em>) – capacitor target lifetime_h in hours</p></li>
+<li><p><strong>operating_temperature</strong> (<em>float</em>) – operating temperature in degree Celsius</p></li>
+<li><p><strong>voltage_rating</strong> (<em>float</em>) – capacitor operating voltage in V</p></li>
+<li><p><strong>lt_dto_list</strong> (<em>list</em><em>[</em><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.LifetimeDerating"><em>LifetimeDerating</em></a><em>]</em>) – lifetime_h DTO list</p></li>
+<li><p><strong>is_debug</strong> (<em>bool</em>) – True to show interpolation plot</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>voltage</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Power Electronics Capacitor Selection Toolbox (PE-CST) documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, UPB-LEA.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
