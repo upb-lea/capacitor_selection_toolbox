@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 # own libraries
-from cst.cst_dataclasses import CalculatedRequirementsValues
+from pecst.cst_dataclasses import CalculatedRequirementsValues
 
 logger = logging.getLogger(__name__)
 

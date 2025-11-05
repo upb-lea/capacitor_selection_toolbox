@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 from matplotlib import pyplot as plt
 
 # own libraries
-from cst.cst_dataclasses import LifetimeDerating
+from pecst.cst_dataclasses import LifetimeDerating
 
 def get_voltage_from_semilogx_lifetime(lifetime: float, lifetime_vec: pd.Series, voltage_vec: pd.Series) -> np.ndarray:
     """
@@ -119,8 +119,8 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
 
 
 if __name__ == '__main__':
-    import cst
-    c_df, sh_df, c_derating, dvdt_df, l_dto_list = cst.load_dc_film_capacitors("B3271*P")
+    import pecst
+    c_df, sh_df, c_derating, dvdt_df, l_dto_list = pecst.load_dc_film_capacitors("B3271*P")
     voltage = voltage_rating_due_to_lifetime(target_lifetime=300_000, operating_temperature=86,
                                              lt_dto_list=l_dto_list, voltage_rating=825)
     print(f"{voltage=}")

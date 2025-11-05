@@ -9,8 +9,8 @@ import pandas as pd
 import numpy as np
 
 # own libraries
-from cst import constants as const
-from cst.cst_dataclasses import LifetimeDerating
+from pecst import constants as const
+from pecst.cst_dataclasses import LifetimeDerating
 
 logger = logging.getLogger(__name__)
 

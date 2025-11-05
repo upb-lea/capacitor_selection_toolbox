@@ -8,8 +8,8 @@ import logging
 # 3rd party libraries
 
 # own libraries
-import cst.constants as const
-from cst.read_capacitor_database import load_dc_film_capacitors
+import pecst.constants as const
+from pecst.read_capacitor_database import load_dc_film_capacitors
 
 logger = logging.getLogger(__name__)
 
