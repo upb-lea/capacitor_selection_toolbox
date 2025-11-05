@@ -12,7 +12,7 @@ results/
 *.pkl
 dictionary.dic
 workspace/
-cst/esr_downloads/*
+pecst/esr_downloads/*
 *.pdf
 *.ods
 examples/*.csv

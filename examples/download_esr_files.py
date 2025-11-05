@@ -3,9 +3,9 @@
 import logging
 
 # own libraries
-import cst
+import pecst
 
 # configure logging to show femmt terminal output
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
-cst.download_esr_csv_files()
+pecst.download_esr_csv_files()

@@ -1,7 +1,7 @@
 .. sectnum::
 
-Welcome to the Capacitor Selection Toolbox (CST)
-=============================================================
+Power Electronics Capacitor Selection Toolbox (PE-CST)
+=========================================================================
 Toolbox to select suitable foil capacitors for power electronics applications.
 
 

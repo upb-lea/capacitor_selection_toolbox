@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 
 # own libraries
-import cst.constants as const
+import pecst.constants as const
 
 # def read_leakage_current(operating_voltage: float, temperature_ambient: float) -> float:
 #     leakage_current = 1

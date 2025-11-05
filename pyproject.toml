@@ -1,10 +1,10 @@
 [project]
-name = "cst"
+name = "cstpe"
 version = "0.1.0"
 authors = [
     { name = "UPB-LEA" },
 ]
-description = "Power electroincs capacitor selection toolbox."
+description = "Capacitor Selection Toolbox for Power Electroincs."
 readme = "README.rst"
 requires-python = ">=3.11"
 classifiers = [
@@ -30,11 +30,11 @@ build-backend = "hatchling.build"
 files = ["requirements.txt"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["cst/"]
+packages = ["pecst/"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "cst/*.py",
+    "pecst/*.py",
     "tests",
     "requirements.txt"
 ]

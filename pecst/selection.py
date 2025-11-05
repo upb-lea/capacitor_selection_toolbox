@@ -9,15 +9,15 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 # own libraries
-from cst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
-from cst.functions import fft
-from cst.read_capacitor_database import load_dc_film_capacitors
-from cst.power_loss import power_loss_film_capacitor
-import cst.constants as const
-import cst.cost_models as cost
-from cst.current_capability import current_capability_film_capacitor
-from cst.lifetime import voltage_rating_due_to_lifetime
-from cst.dvdt import calc_parallel_capacitors_dvdt
+from pecst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
+from pecst.functions import fft
+from pecst.read_capacitor_database import load_dc_film_capacitors
+from pecst.power_loss import power_loss_film_capacitor
+import pecst.constants as const
+import pecst.cost_models as cost
+from pecst.current_capability import current_capability_film_capacitor
+from pecst.lifetime import voltage_rating_due_to_lifetime
+from pecst.dvdt import calc_parallel_capacitors_dvdt
 
 logger = logging.getLogger(__name__)
 

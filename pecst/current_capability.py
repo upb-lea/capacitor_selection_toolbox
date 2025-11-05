@@ -6,7 +6,7 @@
 import numpy as np
 
 # own libraries
-from cst.power_loss import read_capacitor_frequency_dependent_limits
+from pecst.power_loss import read_capacitor_frequency_dependent_limits
 
 def current_capability_film_capacitor(order_number: str, frequency_list: list[float], current_amplitude_list: list[float], derating_factor: float) -> int:
     """
