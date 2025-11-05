@@ -7,11 +7,10 @@ Toolbox to select suitable foil capacitors for power electronics applications.
 
 Installation
 ---------------------------------------
-Developer mode only. Clone repository, install as following:
 
 ::
 
-    pip install -e .
+    pip install pecst
 
 
 Documentation
@@ -44,5 +43,6 @@ Output:
 
 Quick start
 ---------------------------------------
+
  * run the `automated download of ESR files <https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/download_esr_files.py>`_.
  * run the `Example capacitor selection file <https://github.com/upb-lea/capacitor_selection_toolbox/blob/main/examples/capacitor_selection_example.py>`_.
