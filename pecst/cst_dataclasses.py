@@ -27,8 +27,6 @@ class CapacitorRequirements:
 
     maximum_peak_to_peak_voltage_ripple: float
     current_waveform_for_op_max_current: np.ndarray
-    v_dc_for_op_max_current: float
-    current_waveform_for_op_max_voltage: np.ndarray
     v_dc_for_op_max_voltage: float
     temperature_ambient: float
     voltage_safety_margin_percentage: float

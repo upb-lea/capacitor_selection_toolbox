@@ -16,9 +16,7 @@ logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 capacitor_requirements = pecst.CapacitorRequirements(
     maximum_peak_to_peak_voltage_ripple=1,
     current_waveform_for_op_max_current=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [18, 25, -18, -25, 18]]),
-    v_dc_for_op_max_current=700,
-    current_waveform_for_op_max_voltage=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [8, 19, -8, -9, 8]]),
-    v_dc_for_op_max_voltage=730,
+    v_dc_for_op_max_voltage=700,
     temperature_ambient=90,
     voltage_safety_margin_percentage=10,
     capacitor_type_list=[pecst.CapacitorType.FilmCapacitor],
