@@ -37,8 +37,8 @@ fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(80/25.4, 60/25.4))
 for count, c_db in enumerate(c_db_list):
     ax.scatter(c_db["volume_total"] * pecst.QUBIC_METER_TO_QUBIC_DECI_METER, c_db["power_loss_total"],
                color=color_list[count], label=c_name_list[count])
-ax.set_xlabel(r"$V_\mathrm{C,total}$ / dm³")
-ax.set_ylabel(r"$P_\mathrm{loss,total}$ / W")
+ax.set_xlabel(r"Total capacitor volume $V_\mathrm{C,total}$ / dm³")
+ax.set_ylabel(r"Total capacitor loss $P_\mathrm{loss,total}$ / W")
 ax.grid()
 # ax.set_xlim(100, 600)
 # ax.set_ylim(0, 4)

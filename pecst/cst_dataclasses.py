@@ -41,7 +41,7 @@ class CalculatedRequirementsValues:
 
     requirement_c_min: float
     i_rms: float
-    dv_dt_max_at_c_min: float
+    i_max: float
 
 @dataclass
 class LifetimeDerating:

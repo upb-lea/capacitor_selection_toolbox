@@ -78,10 +78,6 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
         else:
             c_max = c_mid
 
-    # calculate maximum dv/dt at c_min
-    dvdt = new_current_sample_rate / c_mid
-    dvdt_max_at_c_min = np.max(dvdt)
-
     i_rms = np.sqrt(np.mean(capacitor_requirements.current_waveform_for_op_max_current[1] ** 2))
 
     if debug:
@@ -90,7 +86,6 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
         ax[1].plot(new_time_sample_rate, v_c_at_c_max, label="c_max")
         ax[1].plot(new_time_sample_rate, v_c_at_c_min, label="c_min")
         ax[1].plot(new_time_sample_rate, v_c_at_c_mid, label="c_mid")
-        ax[2].plot(new_time_sample_rate, dvdt, label="dv/dt c_mid")
 
         ax[0].grid()
         ax[0].set_ylabel("Current / A")
@@ -105,7 +100,7 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
     return CalculatedRequirementsValues(
         requirement_c_min=c_mid,
         i_rms=i_rms,
-        dv_dt_max_at_c_min=dvdt_max_at_c_min
+        i_max=np.max(capacitor_requirements.current_waveform_for_op_max_current[1])
     )
 
 def get_temperature_current_derating_factor(ambient_temperature: float, df_derating: pd.DataFrame) -> float:
@@ -236,8 +231,8 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
                                                            (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
             # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
-            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df: calc_parallel_capacitors_dvdt(
-                x["capacitance"], x["V_R_85degree"], x["in_series_needed"], dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
+            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df, i_peak=calculated_boundaries.i_max: calc_parallel_capacitors_dvdt(
+                x["capacitance"], x["V_R_85degree"], i_peak, dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
 
             # current: calculate the number of parallel capacitors needed to meet the current requirement
             c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(

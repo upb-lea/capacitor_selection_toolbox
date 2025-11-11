@@ -28,7 +28,7 @@ def series_in_order_number(series_name: str, ordering_number: str) -> bool:
     else:
         return False
 
-def calc_parallel_capacitors_dvdt(capacitance: float, rated_voltage: float, n_series: int, dvdt_df: pd.DataFrame, ordering_number: str,
+def calc_parallel_capacitors_dvdt(capacitance: float, rated_voltage: float, i_peak: float, dvdt_df: pd.DataFrame, ordering_number: str,
                                   calculated_boundaries: CalculatedRequirementsValues) -> int:
     """
     Calculate the number of parallel capacitors needed due to the maximum dv/dt requirement.
@@ -37,8 +37,8 @@ def calc_parallel_capacitors_dvdt(capacitance: float, rated_voltage: float, n_se
     :type capacitance: float
     :param rated_voltage: capacitors rated voltage in V
     :type rated_voltage: float
-    :param n_series: number of capacitors in series connection
-    :type n_series: int
+    :param i_peak: peak current of the capacitor bank
+    :type i_peak: float
     :param dvdt_df: dataframe with information about dv/dt limits
     :type dvdt_df: pd.DataFrame
     :param ordering_number: capacitor ordering number
@@ -48,9 +48,6 @@ def calc_parallel_capacitors_dvdt(capacitance: float, rated_voltage: float, n_se
     :return: number of parallel capacitors needed due to dv/dt requirement
     :rtype: int
     """
-    # calculate dv/dt per capacitor
-    dvdt = calculated_boundaries.dv_dt_max_at_c_min / calculated_boundaries.requirement_c_min * capacitance / n_series
-
     # get maximum allowed dv/dt per capacitor type
     dvdt_max_df = dvdt_df["dv/dt"].loc[dvdt_df.apply(
         lambda x: series_in_order_number(x["series"], ordering_number), axis=1) & (dvdt_df["rated_voltage"] == rated_voltage)]
@@ -63,6 +60,6 @@ def calc_parallel_capacitors_dvdt(capacitance: float, rated_voltage: float, n_se
         dvdt_max = float(dvdt_max_df.values[0])
 
     # calculate number of parallel capacitors to meet the dv/dt maximum requirement
-    number_parallel_capacitors = np.ceil(dvdt / dvdt_max)
+    number_parallel_capacitors = np.ceil(i_peak / dvdt_max / capacitance)
 
     return int(number_parallel_capacitors)
