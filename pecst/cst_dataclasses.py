@@ -34,6 +34,7 @@ class CapacitorRequirements:
     maximum_number_series_capacitors: int
     capacitor_tolerance_percent: CapacitanceTolerance
     lifetime_h: float
+    results_directory: str
 
 @dataclass
 class CalculatedRequirementsValues:

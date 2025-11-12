@@ -22,7 +22,8 @@ capacitor_requirements = pecst.CapacitorRequirements(
     capacitor_type_list=[pecst.CapacitorType.FilmCapacitor],
     maximum_number_series_capacitors=2,
     capacitor_tolerance_percent=pecst.CapacitanceTolerance.TenPercent,
-    lifetime_h=30_000
+    lifetime_h=30_000,
+    results_directory=""
 )
 
 # capacitor pareto plane calculation
