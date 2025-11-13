@@ -18,7 +18,7 @@ Documentation
 Capacitor input parameters:
  * ``maximum_peak_to_peak_voltage_ripple``
  * ``current_waveform_for_op_max_current``
- * ``v_dc_for_op_max_current``
+ * ``v_dc_for_op_max_voltage``
  * ``temperature_ambient``
  * ``voltage_safety_margin_percentage``
  * ``capacitor_type_list=[cst.CapacitorType.FilmCapacitor]``

@@ -27,8 +27,6 @@ class CapacitorRequirements:
 
     maximum_peak_to_peak_voltage_ripple: float
     current_waveform_for_op_max_current: np.ndarray
-    v_dc_for_op_max_current: float
-    current_waveform_for_op_max_voltage: np.ndarray
     v_dc_for_op_max_voltage: float
     temperature_ambient: float
     voltage_safety_margin_percentage: float
@@ -36,6 +34,7 @@ class CapacitorRequirements:
     maximum_number_series_capacitors: int
     capacitor_tolerance_percent: CapacitanceTolerance
     lifetime_h: float
+    results_directory: str
 
 @dataclass
 class CalculatedRequirementsValues:
@@ -43,7 +42,7 @@ class CalculatedRequirementsValues:
 
     requirement_c_min: float
     i_rms: float
-    dv_dt_max_at_c_min: float
+    i_max: float
 
 @dataclass
 class LifetimeDerating:

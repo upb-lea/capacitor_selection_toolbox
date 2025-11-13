@@ -12,3 +12,4 @@ from pecst.colors import *
 from pecst.current_capability import *
 from pecst.lifetime import *
 from pecst.dvdt import *
+from pecst.filter import *
