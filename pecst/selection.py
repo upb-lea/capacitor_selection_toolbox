@@ -278,6 +278,9 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
                 c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
 
+            # calculate minimum required PCB area
+            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+
         c_db.to_csv(f"results_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)
