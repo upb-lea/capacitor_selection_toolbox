@@ -1,6 +1,7 @@
 """Misc calculations."""
 # python libraries
 import logging
+import os.path
 import pathlib
 
 # 3rd party libraries
@@ -142,8 +143,8 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
 
     if len(thermal_coefficient_series.values) != 1:
         thermal_coefficient = np.nan
-        logger.info("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.\n"
-                    f"{width=}, {height=}, {length=}")
+        logger.debug("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.\n"
+                     f"{width=}, {height=}, {length=}")
     else:
         thermal_coefficient = float(thermal_coefficient_series.values[0])
 
@@ -281,7 +282,10 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             # calculate minimum required PCB area
             c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
-        c_db.to_csv(f"results_{capacitor_series_name}.csv")
+        if not os.path.exists(c_requirements.results_directory):
+            os.makedirs(c_requirements.results_directory)
+
+        c_db.to_csv(f"{c_requirements.results_directory}/results_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)
 

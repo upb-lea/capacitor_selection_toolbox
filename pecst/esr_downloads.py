@@ -65,7 +65,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
             # generate csv file path
             save_path = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_DIRECTORY, f"{ordering_code}.csv")
             if save_path.exists():
-                logger.info(f"{save_path} already exists. Skip download.")
+                logger.debug(f"{save_path} already exists. Skip download.")
             else:
                 url = (f"https://captools.tdk-electronics.tdk.com/CLARA/api/ApiWebCLARA/DownloadThermalRating?partNumber={ordering_code}"
                        f"&modelPartNumber={ordering_code_short}")
