@@ -189,8 +189,10 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
+        logger.debug("Load capacitor csv data from disk.")
         c_db, c_thermal, c_derating, dvdt_df, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
 
+        logger.debug("Get derating curve.")
         derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
 
         # check for temperature derating depending on the capacitor series
@@ -200,6 +202,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet).
         # This is the reason to estimate the maximum inner allowed operating temperature
+        logger.debug("Calculate virtual inner temperature.")
         virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
         c_db['V_op_max_virt'] = c_db.apply(
             lambda x, v_i_t=virtual_inner_max_temperature:
@@ -207,15 +210,19 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
                       [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
 
         # voltage lifetime_h derating
+        logger.debug("Lifetime derating.")
+        logger.debug(f"{virtual_inner_max_temperature=}")
         c_db["voltage_lifetime"] = c_db.apply(lambda x, v_i_t=virtual_inner_max_temperature, lt_dto_list=lt_dto_list: voltage_rating_due_to_lifetime(
             target_lifetime=c_requirements.lifetime_h, operating_temperature=float(v_i_t),
             voltage_rating=x["V_R_85degree"], lt_dto_list=lt_dto_list), axis=1)
-        c_db = c_db.drop(c_db[np.isnan(c_db["voltage_lifetime"])].index)
+
+        c_db = c_db.drop(c_db[pd.isnull(c_db["voltage_lifetime"])].index)
 
         c_db["factor_lifetime"] = c_db["voltage_lifetime"] / c_db["V_R_85degree"]
 
         # voltage: calculate the number of needed capacitors in a series connection
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
+        logger.debug("Calculate in series needed capacitors.")
         c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
                                                                                      (1 + c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
@@ -227,15 +234,18 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             c_db["power_loss_total"] = np.nan
         else:
             # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
+            logger.debug("Calculate in parallel needed capacitors due to capacitance.")
             c_db["in_parallel_needed"] = np.ceil(
                 calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
                                                            (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
             # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
+            logger.debug("Calculate in parallel needed capacitors due to dv/dt limit.")
             c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df, i_peak=calculated_boundaries.i_max: calc_parallel_capacitors_dvdt(
                 x["capacitance"], x["V_R_85degree"], i_peak, dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
 
             # current: calculate the number of parallel capacitors needed to meet the current requirement
+            logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")
             c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
                 order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
                 axis=1)
@@ -250,16 +260,19 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
 
             # volume calculation
+            logger.debug("Volume calculation.")
             c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
             # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
             # ESL_total = L * n_serial / n_parallel
             # C_total = C * n_parallel / n_serial
             # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
+            logger.debug("Resonance frequency filtering.")
             c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
             c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
 
             # loss calculation per capacitor
+            logger.debug("Power loss estimation by ESR.")
             c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
                                                                                               x["in_parallel_needed"]), axis=1)
             # loss calculation for all capacitors
@@ -267,6 +280,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
 
             # self heating calculation
             # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
+            logger.debug("Self heating.")
             c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
                 c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
             c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
@@ -276,6 +290,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
             c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
 
             # calculate component cost according to cost models
+            logger.debug("Calculate component cost.")
             c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
                 c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
 
@@ -285,6 +300,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
 
+        logger.debug(f"Save results_{capacitor_series_name}.csv")
         c_db.to_csv(f"{c_requirements.results_directory}/results_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)

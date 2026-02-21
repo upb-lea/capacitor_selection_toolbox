@@ -1,6 +1,7 @@
 """Capacitor selection example."""
 # python libraries
 import logging
+import os.path
 
 # 3rd party libraries
 import numpy as np
@@ -9,8 +10,12 @@ from matplotlib import pyplot as plt
 # own libraries
 import pecst
 
-# configure logging to show femmt terminal output
-logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__) # or pass an explicit name here, e.g. "mylogger"
+hdlr = logging.StreamHandler()
+fhdlr = logging.FileHandler("myapp.log")
+logger.addHandler(hdlr)
+logger.addHandler(fhdlr)
+logger.setLevel(logging.DEBUG)
 
 # capacitor requirements
 capacitor_requirements = pecst.CapacitorRequirements(
@@ -23,7 +28,7 @@ capacitor_requirements = pecst.CapacitorRequirements(
     maximum_number_series_capacitors=2,
     capacitor_tolerance_percent=pecst.CapacitanceTolerance.TenPercent,
     lifetime_h=30_000,
-    results_directory=""
+    results_directory=os.path.dirname(os.path.abspath(__file__))
 )
 
 # capacitor pareto plane calculation

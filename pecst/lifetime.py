@@ -1,5 +1,8 @@
 """Capacitor lifetime_h consideration."""
 
+# python libraries
+import logging
+
 # 3rd party libraries
 import numpy as np
 import pandas as pd
@@ -8,6 +11,8 @@ from matplotlib import pyplot as plt
 
 # own libraries
 from pecst.cst_dataclasses import LifetimeDerating
+
+logger = logging.getLogger(__name__)
 
 def get_voltage_from_semilogx_lifetime(lifetime: float, lifetime_vec: pd.Series, voltage_vec: pd.Series) -> np.ndarray:
     """
@@ -29,12 +34,12 @@ def get_voltage_from_semilogx_lifetime(lifetime: float, lifetime_vec: pd.Series,
         voltage = f(np.log10(lifetime))
     except:
         voltage = np.nan
-    return np.array([voltage])
+    return np.array(voltage)
 
 def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature: float, voltage_rating: float,
                                    lt_dto_list: list[LifetimeDerating], is_debug: bool = False) -> float:
     """
-    Voltage dearting due to capacitor lifetime_h.
+    Voltage derating due to capacitor lifetime_h.
 
     :param target_lifetime: capacitor target lifetime_h in hours
     :type target_lifetime: float
@@ -42,7 +47,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
     :type operating_temperature: float
     :param voltage_rating: capacitor operating voltage in V
     :type voltage_rating: float
-    :param lt_dto_list: lifetime_h DTO list
+    :param lt_dto_list: List of lifetime_h DTOs (lifetime curve depending on voltage and temperature)
     :type lt_dto_list: list[LifetimeDerating]
     :param is_debug: True to show interpolation plot
     :type is_debug: bool
@@ -54,6 +59,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
     for lt_dto in lt_dto_list:
         # find temperature below and temperature above the operating temperature
         if lt_dto.voltage == voltage_rating:
+            logger.debug(f"Lifetime DTO {lt_dto.voltage} V.")
             if operating_temperature <= lt_dto.temperature < temperature_higher:
                 temperature_higher = lt_dto.temperature
             if operating_temperature >= lt_dto.temperature > temperature_lower:
@@ -62,6 +68,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
         temperature_higher = temperature_lower
     if temperature_lower == 0:
         temperature_lower = temperature_higher
+    logger.debug(f"{temperature_lower=} °C, {temperature_higher=} °C.")
 
     # get the dataframes of lower and higher temperatures (closest to the operating point)
     for lt_dto in lt_dto_list:
@@ -110,17 +117,27 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
         plt.semilogx(df_higher["lifetime"], df_higher["voltage"], label=f"{temperature_higher} °C")
         plt.semilogx(df_mid["lifetime"], df_mid["voltage"], label=f"{temperature_mid} °C")
         plt.title(f"Operating temperature = {operating_temperature} °C")
-        plt.plot(target_lifetime, voltage, 'ro')
+        plt.plot(target_lifetime, voltage, 'ro', label="voltage at target lifetime")
         plt.legend()
         plt.grid()
         plt.show()
 
-    return float(voltage)
+    logger.debug(f"{voltage=}")
+
+    return voltage.astype(float)
 
 
 if __name__ == '__main__':
     import pecst
+
+    logger = logging.getLogger(__name__)
+    hdlr = logging.StreamHandler()
+    fhdlr = logging.FileHandler("myapp.log")
+    logger.addHandler(hdlr)
+    logger.addHandler(fhdlr)
+    logger.setLevel(logging.DEBUG)
+
     c_df, sh_df, c_derating, dvdt_df, l_dto_list = pecst.load_dc_film_capacitors("B3271*P")
     voltage = voltage_rating_due_to_lifetime(target_lifetime=300_000, operating_temperature=86,
-                                             lt_dto_list=l_dto_list, voltage_rating=825)
+                                             lt_dto_list=l_dto_list, voltage_rating=825, is_debug=True)
     print(f"{voltage=}")
