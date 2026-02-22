@@ -149,7 +149,7 @@ if __name__ == '__main__':
 
     logger = logging.getLogger(__name__)
     hdlr = logging.StreamHandler()
-    fhdlr = logging.FileHandler("myapp.log")
+    fhdlr = logging.FileHandler("log_file_lifetime.log")
     logger.addHandler(hdlr)
     logger.addHandler(fhdlr)
     logger.setLevel(logging.DEBUG)
