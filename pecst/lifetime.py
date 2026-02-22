@@ -56,6 +56,8 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
     """
     temperature_lower: float = 0
     temperature_higher: float = 500
+    is_above_maximum_temperature = False
+    # sweep through all available lifetime curves for the given capacitor
     for lt_dto in lt_dto_list:
         # find temperature below and temperature above the operating temperature
         if lt_dto.voltage == voltage_rating:
@@ -65,64 +67,79 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
             if operating_temperature >= lt_dto.temperature > temperature_lower:
                 temperature_lower = lt_dto.temperature
     if temperature_higher == 500:
+        # temperature_higher has not been moved, so the temperature_lower is above the highest temperature curve
         temperature_higher = temperature_lower
+        if operating_temperature > temperature_higher:
+            is_above_maximum_temperature = True
     if temperature_lower == 0:
+        # temperature_lower has not been moved, so the temperature_higher is below the lowest temperature curve
         temperature_lower = temperature_higher
+
     logger.debug(f"{temperature_lower=} °C, {temperature_higher=} °C.")
 
-    # get the dataframes of lower and higher temperatures (closest to the operating point)
-    for lt_dto in lt_dto_list:
-        if lt_dto.voltage == voltage_rating and lt_dto.temperature == temperature_lower:
-            df_lower = lt_dto.lifetime
-        if lt_dto.voltage == voltage_rating and lt_dto.temperature == temperature_higher:
-            df_higher = lt_dto.lifetime
+    if is_above_maximum_temperature:
+        logger.debug(f"Operating temperature above maximum available curve: {operating_temperature} °C > {temperature_higher} °C ")
+        voltage=np.array(np.nan)
+    else:
+        # get the dataframes of lower and higher temperatures (closest to the operating point)
+        for lt_dto in lt_dto_list:
+            if lt_dto.voltage == voltage_rating and lt_dto.temperature == temperature_lower:
+                df_lower = lt_dto.lifetime
+            if lt_dto.voltage == voltage_rating and lt_dto.temperature == temperature_higher:
+                df_higher = lt_dto.lifetime
 
-    # interpolate between both temperatures multiple times using bisection
-    # experimentally figure out c_min
-    temperature_start = temperature_lower
-    temperature_stop = temperature_higher
-    higher_df = df_higher.copy()
-    lower_df = df_lower.copy()
-    delta_temperature = 100
-    # temperature error should be less than 1 degree Celsius
-    while delta_temperature > 1:
-        # interpolated temperature
-        temperature_mid = (temperature_start + temperature_stop) / 2
-
-        # geometric interpolation for the new lifetime_h curve for the new temperature
-        df_mid = pd.DataFrame()
-        df_mid["lifetime"] = np.sqrt(lower_df["lifetime"] * higher_df["lifetime"])
-        df_mid["voltage"] = np.sqrt(lower_df["voltage"] * higher_df["voltage"])
-
-        # bisection new start conditions
-        if operating_temperature > temperature_mid:
-            temperature_start = temperature_mid
-            lower_df["lifetime"] = df_mid["lifetime"]
-            lower_df["voltage"] = df_mid["voltage"]
-        elif operating_temperature == temperature_mid:
-            break
+        # interpolate between both temperatures multiple times using bisection
+        # experimentally figure out c_min
+        temperature_start = temperature_lower
+        temperature_stop = temperature_higher
+        higher_df = df_higher.copy()
+        lower_df = df_lower.copy()
+        delta_temperature = 100
+        if temperature_start == temperature_stop:
+            # temperature is below the lowest given curve: the lowest given curve is used.
+            df_mid = pd.DataFrame()
+            df_mid["lifetime"] = lower_df["lifetime"]
+            df_mid["voltage"] = lower_df["voltage"]
+            temperature_mid = temperature_start
         else:
-            temperature_stop = temperature_mid
-            higher_df["lifetime"] = df_mid["lifetime"]
-            higher_df["voltage"] = df_mid["voltage"]
+            # temperature error should be less than 1 degree Celsius
+            while delta_temperature > 1:
+                # interpolated temperature
+                temperature_mid = (temperature_start + temperature_stop) / 2
 
-        # calculate temperature error
-        delta_temperature = np.abs(operating_temperature - temperature_mid)
+                # geometric interpolation for the new lifetime_h curve for the new temperature
+                df_mid = pd.DataFrame()
+                df_mid["lifetime"] = np.sqrt(lower_df["lifetime"] * higher_df["lifetime"])
+                df_mid["voltage"] = np.sqrt(lower_df["voltage"] * higher_df["voltage"])
 
-    # logarithmic voltage interpolation for the voltage
-    voltage = get_voltage_from_semilogx_lifetime(target_lifetime, df_mid["lifetime"], df_mid["voltage"])
+                # bisection new start conditions
+                if operating_temperature > temperature_mid:
+                    temperature_start = temperature_mid
+                    lower_df["lifetime"] = df_mid["lifetime"]
+                    lower_df["voltage"] = df_mid["voltage"]
+                elif operating_temperature == temperature_mid:
+                    break
+                else:
+                    temperature_stop = temperature_mid
+                    higher_df["lifetime"] = df_mid["lifetime"]
+                    higher_df["voltage"] = df_mid["voltage"]
 
-    if is_debug:
-        plt.semilogx(df_lower["lifetime"], df_lower["voltage"], label=f"{temperature_lower} °C")
-        plt.semilogx(df_higher["lifetime"], df_higher["voltage"], label=f"{temperature_higher} °C")
-        plt.semilogx(df_mid["lifetime"], df_mid["voltage"], label=f"{temperature_mid} °C")
-        plt.title(f"Operating temperature = {operating_temperature} °C")
-        plt.plot(target_lifetime, voltage, 'ro', label="voltage at target lifetime")
-        plt.legend()
-        plt.grid()
-        plt.show()
+                # calculate temperature error
+                delta_temperature = np.abs(operating_temperature - temperature_mid)
 
-    logger.debug(f"{voltage=}")
+        # logarithmic voltage interpolation for the voltage
+        voltage = get_voltage_from_semilogx_lifetime(target_lifetime, df_mid["lifetime"], df_mid["voltage"])
+
+        if is_debug:
+            plt.semilogx(df_lower["lifetime"], df_lower["voltage"], label=f"{temperature_lower} °C")
+            plt.semilogx(df_higher["lifetime"], df_higher["voltage"], label=f"{temperature_higher} °C")
+            if voltage is not np.nan:
+                plt.semilogx(df_mid["lifetime"], df_mid["voltage"], label=f"{temperature_mid} °C")
+            plt.title(f"Operating temperature = {operating_temperature} °C")
+            plt.plot(target_lifetime, voltage, 'ro', label="voltage at target lifetime")
+            plt.legend()
+            plt.grid()
+            plt.show()
 
     return voltage.astype(float)
 
@@ -138,6 +155,6 @@ if __name__ == '__main__':
     logger.setLevel(logging.DEBUG)
 
     c_df, sh_df, c_derating, dvdt_df, l_dto_list = pecst.load_dc_film_capacitors("B3271*P")
-    voltage = voltage_rating_due_to_lifetime(target_lifetime=300_000, operating_temperature=86,
+    voltage = voltage_rating_due_to_lifetime(target_lifetime=30_000, operating_temperature=35,
                                              lt_dto_list=l_dto_list, voltage_rating=825, is_debug=True)
     print(f"{voltage=}")
