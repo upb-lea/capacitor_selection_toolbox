@@ -10,7 +10,7 @@ from matplotlib import pyplot as plt
 # own libraries
 import pecst
 
-logger = logging.getLogger(__name__) # or pass an explicit name here, e.g. "mylogger"
+logger = logging.getLogger(__name__)
 hdlr = logging.StreamHandler()
 fhdlr = logging.FileHandler("myapp.log")
 logger.addHandler(hdlr)

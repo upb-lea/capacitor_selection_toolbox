@@ -79,7 +79,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
 
     if is_above_maximum_temperature:
         logger.debug(f"Operating temperature above maximum available curve: {operating_temperature} °C > {temperature_higher} °C ")
-        voltage=np.array(np.nan)
+        voltage = np.array(np.nan)
     else:
         # get the dataframes of lower and higher temperatures (closest to the operating point)
         for lt_dto in lt_dto_list:
@@ -141,7 +141,7 @@ def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature
             plt.grid()
             plt.show()
 
-    return voltage.astype(float)
+    return float(voltage)
 
 
 if __name__ == '__main__':
