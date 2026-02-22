@@ -14,7 +14,7 @@ QUBIC_METER_TO_QUBIC_CENTI_METER = 1e6
 QUBIC_METER_TO_QUBIC_MILLI_METER = 1e9
 
 # folder names
-ESR_OVER_FREQUENCY_DIRECTORY = "esr_downloads"
+FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY = "foil_downloads"
 FOIL_CAPACITOR_DATA_DIRECTORY = "foil_capacitor_data"
 
 # available foil capacitor series
