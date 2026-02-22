@@ -35,6 +35,7 @@ rms
 modelPartNumber
 CalculatedRequirementsValues
 DTO
+DTOs
 ApiWebCLARA
 DownloadThermalRating
 api
