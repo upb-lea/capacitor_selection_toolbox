@@ -16,6 +16,7 @@ QUBIC_METER_TO_QUBIC_MILLI_METER = 1e9
 # folder names
 FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY = "foil_downloads"
 FOIL_CAPACITOR_DATA_DIRECTORY = "foil_capacitor_data"
+CERAMIC_CAPACITOR_DOWNLOAD_DIRECTORY = "ceramic_downloads"
 
 # available foil capacitor series
 FOIL_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
