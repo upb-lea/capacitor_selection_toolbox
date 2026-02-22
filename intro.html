@@ -835,14 +835,14 @@ Filtering e.g. for the Pareto front must be done in a separate step by the user.
 <dl class="py function">
 <dt class="sig sig-object py" id="pecst.voltage_rating_due_to_lifetime">
 <span class="sig-prename descclassname"><span class="pre">pecst.</span></span><span class="sig-name descname"><span class="pre">voltage_rating_due_to_lifetime</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_lifetime</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operating_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">voltage_rating</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lt_dto_list</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.cst_dataclasses.LifetimeDerating"><span class="pre">LifetimeDerating</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_debug</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pecst.voltage_rating_due_to_lifetime" title="Link to this definition"></a></dt>
-<dd><p>Voltage dearting due to capacitor lifetime_h.</p>
+<dd><p>Voltage derating due to capacitor lifetime_h.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>target_lifetime</strong> (<em>float</em>) – capacitor target lifetime_h in hours</p></li>
 <li><p><strong>operating_temperature</strong> (<em>float</em>) – operating temperature in degree Celsius</p></li>
 <li><p><strong>voltage_rating</strong> (<em>float</em>) – capacitor operating voltage in V</p></li>
-<li><p><strong>lt_dto_list</strong> (<em>list</em><em>[</em><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.LifetimeDerating"><em>LifetimeDerating</em></a><em>]</em>) – lifetime_h DTO list</p></li>
+<li><p><strong>lt_dto_list</strong> (<em>list</em><em>[</em><a class="reference internal" href="#pecst.LifetimeDerating" title="pecst.LifetimeDerating"><em>LifetimeDerating</em></a><em>]</em>) – List of lifetime_h DTOs (lifetime curve depending on voltage and temperature)</p></li>
 <li><p><strong>is_debug</strong> (<em>bool</em>) – True to show interpolation plot</p></li>
 </ul>
 </dd>
