@@ -1,0 +1,1 @@
+"""Initialize ceramic capacitors."""

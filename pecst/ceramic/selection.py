@@ -1,7 +1,7 @@
 """Misc calculations."""
 # python libraries
 import logging
-import os.path
+import os
 import pathlib
 
 # 3rd party libraries
@@ -10,17 +10,56 @@ import pandas as pd
 from matplotlib import pyplot as plt
 
 # own libraries
-from pecst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
-from pecst.functions import fft
-from pecst.foil.read_capacitor_database import load_dc_film_capacitors
-from pecst.foil.power_loss import power_loss_film_capacitor
+from pecst.cst_dataclasses import CapacitorRequirements
+from pecst.functions import fft, calculate_from_requirements
 import pecst.constants as const
-import pecst.cost_models as cost
-from pecst.foil.current_capability import current_capability_film_capacitor
-from pecst.foil.lifetime import voltage_rating_due_to_lifetime
-from pecst.foil.dvdt import calc_parallel_capacitors_dvdt
+from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance
+from pecst.ceramic.power_loss import power_loss_ceramic_capacitor
+from pecst.ceramic.dc_bias import dc_bias_series_parallel_connection
 
 logger = logging.getLogger(__name__)
+
+
+def decode_kemet_type_label(type_label: str):
+    """
+    Decode the kemet type label.
+
+    :param type_label: type label / ordering code
+    :return:
+    """
+
+    def decode_smd_housing_size(housing_size_code: str):
+        area = const.SMD_SIZE_DF.loc[housing_size_code == const.SMD_SIZE_DF["size"]]["area"].values[0]
+        return area
+
+    def decode_capacitance_code(capacitance_code: str):
+        """
+        First two digits represent significant figures. Third digit specifies number of zeros to follow. In pF.
+
+        :param capacitance_code: e.g. "102" -> 10 * 10² pF = 1 nF
+        :return: capacitance / F, area / m², tolerance, voltage / V
+        """
+        capacitance = float(capacitance_code[0:2]) * 10 ** float(capacitance_code[-1]) * const.PICO_TO_NORM
+        return capacitance
+
+    def decode_voltage_code(voltage_code: str):
+        return const.VOLTAGE_CODE_KEMET_DICT[voltage_code]
+
+    def decode_tolerance_code(tolerance_code: str):
+        return const.CAPACITANCE_TOLERANCE_KEMET_DICT[tolerance_code]
+
+    housing_size_code = type_label[0:5]
+    capacitance_code = type_label[6:9]
+    tolerance_code = type_label[9]
+    voltage_code = type_label[10]
+    material_code = type_label[11]
+
+    area = decode_smd_housing_size(housing_size_code)
+    capacitance = decode_capacitance_code(capacitance_code)
+    tolerance = decode_tolerance_code(tolerance_code)
+    voltage = decode_voltage_code(voltage_code)
+
+    return capacitance, area, tolerance, voltage
 
 def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
@@ -40,141 +79,90 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
 
     :param c_requirements: capacitor requirements
     :type c_requirements: CapacitorRequirements
-    :return: pandas data frame with all possible capacitors.
-    :rtype: pandas.DataFrame
     """
     # calculate minimum required capacitance and RMS current
     logger.info("Calculate requirements and values from given input data.")
     calculated_boundaries = calculate_from_requirements(c_requirements)
-
-    capacitor_df_list = []
 
     logger.info("FFT")
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
     path = pathlib.Path(__file__)
-    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.FOIL_CAPACITOR_DATA_DIRECTORY, f"{const.FOIL_CAPACITOR_SERIES_VALUES}.csv")
-    series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
+    capacitor_downloads_path = pathlib.PurePath(path.parents[1], const.CERAMIC_CAPACITOR_DOWNLOAD_DIRECTORY)
 
-    for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
-        logger.info(f"Capacitor series: {capacitor_series_name}")
+    # generate available capacitor dataframe
 
-        # select all suitable capacitors including derating and thermal information from the database
-        logger.debug("Load capacitor csv data from disk.")
-        c_db, c_thermal, c_derating, dvdt_df, lt_dto_list = load_dc_film_capacitors(capacitor_series_name)
+    filenames = next(os.walk(capacitor_downloads_path), (None, None, []))[2]  # [] if no file
+    unique_files = [filename for filename in filenames if "_Imp,ESR.csv" in filename]
+    unique_files = [filename.replace("_Imp,ESR.csv", "") for filename in unique_files]
 
-        logger.debug("Get derating curve.")
-        derating_factor = get_temperature_current_derating_factor(ambient_temperature=c_requirements.temperature_ambient, df_derating=c_derating)
+    ceramic_df = pd.DataFrame()
 
-        # check for temperature derating depending on the capacitor series
-        delta_t_jc_max = series_values.loc[series_values["series"] == capacitor_series_name, "delta_t_jc"].values[0]
-        delta_temperature_max = derating_factor ** 2 * delta_t_jc_max
+    for type_label in unique_files:
+        capacitance, area, tolerance, voltage = decode_kemet_type_label(type_label)
 
-        # The interpolation is made at the given datasheet temperatures of 85 °C, 105 °C and 125 °C. This is same for all capacitors in the database.
-        # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet).
-        # This is the reason to estimate the maximum inner allowed operating temperature
-        logger.debug("Calculate virtual inner temperature.")
-        virtual_inner_max_temperature = c_requirements.temperature_ambient + delta_temperature_max
-        c_db['V_op_max_virt'] = c_db.apply(
-            lambda x, v_i_t=virtual_inner_max_temperature:
-            np.interp(v_i_t, [const.TEMPERATURE_85, const.TEMPERATURE_105, const.TEMPERATURE_125],
-                      [x["V_R_85degree"], x["V_op_105degree"], x["V_op_125degree"]]), axis=1)
+        df = pd.DataFrame({"ordering code": type_label, "capacitance": [capacitance], "voltage": [voltage], "area": area, "tolerance": tolerance})
+        ceramic_df = pd.concat([ceramic_df, df], axis=0)
 
-        # voltage lifetime_h derating
-        logger.debug("Lifetime derating.")
-        logger.debug(f"{virtual_inner_max_temperature=}")
-        c_db["voltage_lifetime"] = c_db.apply(lambda x, v_i_t=virtual_inner_max_temperature, lt_dto_list=lt_dto_list: voltage_rating_due_to_lifetime(
-            target_lifetime=c_requirements.lifetime_h, operating_temperature=float(v_i_t),
-            voltage_rating=x["V_R_85degree"], lt_dto_list=lt_dto_list), axis=1)
+    # sort out all capacitors where to many series capacitors are required (more than maximum in series allowed)
+    ceramic_df["number_min_capacitors_in_series"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+    ceramic_df = ceramic_df.drop(ceramic_df[ceramic_df["number_min_capacitors_in_series"] > c_requirements.maximum_number_series_capacitors].index)
 
-        c_db = c_db.drop(c_db[pd.isnull(c_db["voltage_lifetime"])].index)
+    if len(ceramic_df["capacitance"]) == 0:
+        # all capacitors are sorted out due to lifetime ratings. Add empty keys
+        ceramic_df["volume_total"] = np.nan
+        ceramic_df["power_loss_total"] = np.nan
+    else:
+        # figure out if the series connection or the parallel connection is the better option (considering dc bias)
+        ceramic_df["in_parallel_needed"], ceramic_df["in_series_needed"] = ceramic_df.apply(
+            lambda x: dc_bias_series_parallel_connection(x["ordering code"], x["capacitance"], c_requirements.v_dc_for_op_max_voltage,
+                                                         x["number_min_capacitors_in_series"], c_requirements.maximum_number_series_capacitors,
+                                                         calculated_boundaries.requirement_c_min), axis=1)
 
-        c_db["factor_lifetime"] = c_db["voltage_lifetime"] / c_db["V_R_85degree"]
+        print(ceramic_df.head())
 
-        # voltage: calculate the number of needed capacitors in a series connection
-        # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
-        logger.debug("Calculate in series needed capacitors.")
-        c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
-                                                                                     (1 + c_requirements.voltage_safety_margin_percentage / 100)))
-        # drop series connection capacitors more than specified
-        c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
+        # loss calculation per capacitor
+        ceramic_df["power_loss_per_capacitor"] = ceramic_df.apply(lambda x: power_loss_ceramic_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
+                                                                  x["in_parallel_needed"]), axis=1)
 
-        if len(c_db["capacitance"]) == 0:
-            # all capacitors are sorted out due to lifetime ratings. Add empty keys
-            c_db["volume_total"] = np.nan
-            c_db["power_loss_total"] = np.nan
-        else:
-            # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
-            logger.debug("Calculate in parallel needed capacitors due to capacitance.")
-            c_db["in_parallel_needed"] = np.ceil(
-                calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
-                                                           (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
+        # loss calculation for all capacitors
+        ceramic_df.loc[:, 'power_loss_total'] = ceramic_df.loc[:, 'power_loss_per_capacitor'] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"]
 
-            # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
-            logger.debug("Calculate in parallel needed capacitors due to dv/dt limit.")
-            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df, i_peak=calculated_boundaries.i_max: calc_parallel_capacitors_dvdt(
-                x["capacitance"], x["V_R_85degree"], i_peak, dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
+        # calculate minimum required PCB area
+        ceramic_df["area_total"] = ceramic_df["area"] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"]
 
-            # current: calculate the number of parallel capacitors needed to meet the current requirement
-            logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")
-            c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
-                order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
-                axis=1)
+        # calculate total volume
+        # ceramic_df["volume_total"] = ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"] * ceramic_df["volume"]
 
-            # check if parallel capacitors due to current needed is more than due to capacitance needed
-            index_dvdt = c_db["in_parallel_needed_dvdt"] > c_db["in_parallel_needed"]
-            c_db.loc[index_dvdt, "in_parallel_needed"] = c_db.loc[index_dvdt, "in_parallel_needed_dvdt"]
+    if not os.path.exists(c_requirements.results_directory):
+        os.makedirs(c_requirements.results_directory)
 
-            # check if parallel capacitors due to current needed is more than due to capacitance needed
-            index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
-            c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
-            c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
+    logger.debug(f"Save results_ceramic.csv")
+    ceramic_df.to_csv(f"{c_requirements.results_directory}/results_ceramic.csv")
 
-            # volume calculation
-            logger.debug("Volume calculation.")
-            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+    return ["ceramic"], [ceramic_df]
 
-            # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
-            # ESL_total = L * n_serial / n_parallel
-            # C_total = C * n_parallel / n_serial
-            # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
-            logger.debug("Resonance frequency filtering.")
-            c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
 
-            # loss calculation per capacitor
-            logger.debug("Power loss estimation by ESR.")
-            c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                                              x["in_parallel_needed"]), axis=1)
-            # loss calculation for all capacitors
-            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+if __name__ == "__main__":
+    # decode_kemet_type_label("C0402C102K1GAC")
 
-            # self heating calculation
-            # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-            logger.debug("Self heating.")
-            c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
-                c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
-            c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
-            c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+    # capacitor requirements
+    capacitor_requirements = CapacitorRequirements(
+        maximum_peak_to_peak_voltage_ripple=1,
+        current_waveform_for_op_max_current=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [18, 25, -18, -25, 18]]),
+        v_dc_for_op_max_voltage=70,
+        temperature_ambient=90,
+        voltage_safety_margin_percentage=10,
+        capacitor_type_list=[CapacitorType.FilmCapacitor],
+        maximum_number_series_capacitors=2,
+        capacitor_tolerance_percent=CapacitanceTolerance.TenPercent,
+        lifetime_h=30_000,
+        results_directory=os.path.dirname(os.path.abspath(__file__))
+    )
 
-            # drop too high self-heated capacitors
-            c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+    [name], [df] = select_ceramic_capacitors(capacitor_requirements)
+    print(df.head())
 
-            # calculate component cost according to cost models
-            logger.debug("Calculate component cost.")
-            c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
-                c_db.apply(lambda x: cost.cost_film_capacitor(x["V_R_85degree"], x["capacitance"]), axis=1)
-
-            # calculate minimum required PCB area
-            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
-
-        if not os.path.exists(c_requirements.results_directory):
-            os.makedirs(c_requirements.results_directory)
-
-        logger.debug(f"Save results_{capacitor_series_name}.csv")
-        c_db.to_csv(f"{c_requirements.results_directory}/results_{capacitor_series_name}.csv")
-
-        capacitor_df_list.append(c_db)
-
-    return const.FOIL_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
+    plt.scatter(df["area_total"], df["power_loss_total"], c="black")
+    plt.show()

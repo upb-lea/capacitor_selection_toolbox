@@ -7,10 +7,9 @@ import pathlib
 # 3rd party libraries
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
 
 # own libraries
-from pecst.cst_dataclasses import CapacitorRequirements, CalculatedRequirementsValues
+from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.functions import fft, calculate_from_requirements
 from pecst.foil.read_capacitor_database import load_dc_film_capacitors
 from pecst.foil.power_loss import power_loss_film_capacitor
@@ -218,8 +217,8 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
 
-        logger.debug(f"Save results_{capacitor_series_name}.csv")
-        c_db.to_csv(f"{c_requirements.results_directory}/results_{capacitor_series_name}.csv")
+        logger.debug(f"Save results_foil_{capacitor_series_name}.csv")
+        c_db.to_csv(f"{c_requirements.results_directory}/results_foil_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)
 

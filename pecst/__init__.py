@@ -13,4 +13,5 @@ from pecst.foil.current_capability import *
 from pecst.foil.lifetime import *
 from pecst.foil.dvdt import *
 from pecst.filter import *
-from pecst.selection import *
+from pecst.selection import select_capacitors as select_capacitors
+from pecst.ceramic import *
