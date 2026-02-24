@@ -20,19 +20,22 @@ from pecst.ceramic.dc_bias import dc_bias_series_parallel_connection
 logger = logging.getLogger(__name__)
 
 
-def decode_kemet_type_label(type_label: str):
+def decode_kemet_type_label(type_label: str) -> tuple[float, float, float, float, float]:
     """
     Decode the kemet type label.
 
     :param type_label: type label / ordering code
     :return:
     """
+    def decode_smd_housing_size(housing_size_code: str) -> float:
+        area_from_dict = const.SMD_SIZE_DF.loc[housing_size_code == const.SMD_SIZE_DF["size"]]["area"].values[0]
+        return float(area_from_dict)
 
-    def decode_smd_housing_size(housing_size_code: str):
-        area = const.SMD_SIZE_DF.loc[housing_size_code == const.SMD_SIZE_DF["size"]]["area"].values[0]
-        return area
+    def decode_smd_footprint_size(housing_size_code: str) -> float:
+        footprint_area_from_dict = const.SMD_SIZE_DF.loc[housing_size_code == const.SMD_SIZE_DF["size"]]["footprint_area"].values[0]
+        return float(footprint_area_from_dict)
 
-    def decode_capacitance_code(capacitance_code: str):
+    def decode_capacitance_code(capacitance_code: str) -> float:
         """
         First two digits represent significant figures. Third digit specifies number of zeros to follow. In pF.
 
@@ -42,10 +45,10 @@ def decode_kemet_type_label(type_label: str):
         capacitance = float(capacitance_code[0:2]) * 10 ** float(capacitance_code[-1]) * const.PICO_TO_NORM
         return capacitance
 
-    def decode_voltage_code(voltage_code: str):
+    def decode_voltage_code(voltage_code: str) -> float:
         return const.VOLTAGE_CODE_KEMET_DICT[voltage_code]
 
-    def decode_tolerance_code(tolerance_code: str):
+    def decode_tolerance_code(tolerance_code: str) -> float:
         return const.CAPACITANCE_TOLERANCE_KEMET_DICT[tolerance_code]
 
     housing_size_code = type_label[0:5]
@@ -55,11 +58,12 @@ def decode_kemet_type_label(type_label: str):
     material_code = type_label[11]
 
     area = decode_smd_housing_size(housing_size_code)
+    footprint_area = decode_smd_footprint_size(housing_size_code)
     capacitance = decode_capacitance_code(capacitance_code)
     tolerance = decode_tolerance_code(tolerance_code)
     voltage = decode_voltage_code(voltage_code)
 
-    return capacitance, area, tolerance, voltage
+    return capacitance, area, footprint_area, tolerance, voltage
 
 def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
@@ -100,13 +104,15 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
     ceramic_df = pd.DataFrame()
 
     for type_label in unique_files:
-        capacitance, area, tolerance, voltage = decode_kemet_type_label(type_label)
+        capacitance, area, footprint_area, tolerance, voltage = decode_kemet_type_label(type_label)
 
-        df = pd.DataFrame({"ordering code": type_label, "capacitance": [capacitance], "voltage": [voltage], "area": area, "tolerance": tolerance})
+        df = pd.DataFrame({"ordering code": type_label, "capacitance": [capacitance], "voltage": [voltage], "area": area, "footprint_area": footprint_area,
+                           "tolerance": tolerance})
         ceramic_df = pd.concat([ceramic_df, df], axis=0)
 
     # sort out all capacitors where to many series capacitors are required (more than maximum in series allowed)
-    ceramic_df["number_min_capacitors_in_series"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+    ceramic_df["number_min_capacitors_in_series"] = np.ceil(
+        c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
     ceramic_df = ceramic_df.drop(ceramic_df[ceramic_df["number_min_capacitors_in_series"] > c_requirements.maximum_number_series_capacitors].index)
 
     if len(ceramic_df["capacitance"]) == 0:
@@ -115,30 +121,54 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
         ceramic_df["power_loss_total"] = np.nan
     else:
         # figure out if the series connection or the parallel connection is the better option (considering dc bias)
-        ceramic_df["in_parallel_needed"], ceramic_df["in_series_needed"] = ceramic_df.apply(
-            lambda x: dc_bias_series_parallel_connection(x["ordering code"], x["capacitance"], c_requirements.v_dc_for_op_max_voltage,
-                                                         x["number_min_capacitors_in_series"], c_requirements.maximum_number_series_capacitors,
-                                                         calculated_boundaries.requirement_c_min), axis=1)
+        logger.info("Series vs. parallel connection.")
+        ceramic_df[["in_series_needed", "in_parallel_needed"]] = ceramic_df.apply(
+            lambda x, v_dc_max=c_requirements.v_dc_for_op_max_voltage, n_max_c=c_requirements.maximum_number_series_capacitors,
+            c_min_req=calculated_boundaries.requirement_c_min: dc_bias_series_parallel_connection(
+                x["ordering code"], x["capacitance"], v_dc_max, x["number_min_capacitors_in_series"], n_max_c, c_min_req), axis=1)
 
+        print(ceramic_df.shape)
         print(ceramic_df.head())
+        ceramic_df.to_csv(f"{c_requirements.results_directory}/results_intermediate_ceramic.csv")
+
+        # drop capacitors with no bias curve data given
+        print("drop data")
+        # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["in_series_needed"])].index)
+
+        print("after remove of nans")
+        print(ceramic_df.shape)
+        print(f"{frequency_list=}")
+        print(f"{current_amplitude_list=}")
 
         # loss calculation per capacitor
-        ceramic_df["power_loss_per_capacitor"] = ceramic_df.apply(lambda x: power_loss_ceramic_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                  x["in_parallel_needed"]), axis=1)
+        logger.info("Power loss calculation")
+        ceramic_df["power_loss_per_capacitor"] = ceramic_df.apply(
+            lambda x: power_loss_ceramic_capacitor(x["ordering code"], frequency_list, current_amplitude_list, x["in_parallel_needed"]), axis=1)
+
+        print(ceramic_df.shape)
+
+        # drop capacitors with no ESR curve data given
+        # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["power_loss_per_capacitor"])].index)
+
+        print("after remove of nans")
+        print(ceramic_df.shape)
 
         # loss calculation for all capacitors
-        ceramic_df.loc[:, 'power_loss_total'] = ceramic_df.loc[:, 'power_loss_per_capacitor'] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"]
+        ceramic_df.loc[:, 'power_loss_total'] = (
+            ceramic_df.loc[:, 'power_loss_per_capacitor'] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"])
 
         # calculate minimum required PCB area
+        logger.info("Area and volume calculation.")
         ceramic_df["area_total"] = ceramic_df["area"] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"]
+        ceramic_df["area_footprint_total"] = ceramic_df["footprint_area"] * ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"]
 
         # calculate total volume
-        # ceramic_df["volume_total"] = ceramic_df["in_parallel_needed"] * ceramic_df["in_series_needed"] * ceramic_df["volume"]
+        ceramic_df["volume_total"] = ceramic_df["area_footprint_total"] * 2e-3  # assumption of capacitor height of 2 mm
 
     if not os.path.exists(c_requirements.results_directory):
         os.makedirs(c_requirements.results_directory)
 
-    logger.debug(f"Save results_ceramic.csv")
+    logger.debug("Save results_ceramic.csv")
     ceramic_df.to_csv(f"{c_requirements.results_directory}/results_ceramic.csv")
 
     return ["ceramic"], [ceramic_df]
@@ -162,7 +192,7 @@ if __name__ == "__main__":
     )
 
     [name], [df] = select_ceramic_capacitors(capacitor_requirements)
-    print(df.head())
+    print(df)
 
-    plt.scatter(df["area_total"], df["power_loss_total"], c="black")
+    plt.scatter(df["volume_total"], df["power_loss_total"], c="black")
     plt.show()

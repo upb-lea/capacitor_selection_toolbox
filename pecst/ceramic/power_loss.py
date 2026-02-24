@@ -1,3 +1,4 @@
+"""Ceramic capacitor power losses."""
 
 # python libraries
 import pathlib
@@ -51,19 +52,20 @@ def power_loss_ceramic_capacitor(order_number: str, frequency_list: list[float],
     :return: loss of a single capacitor in Watt
     :rtype: float
     """
-    order_number = order_number.replace("+", "K")
-    order_number = order_number.replace("*", "")
-
     # read ESR file
     esr_df = read_ceramic_capacitor_frequency_dependent_limits(order_number)
 
-    esr_losses = 0.0
-    for count_frequency, frequency in enumerate(frequency_list):
-        # interpolate ESR at given frequency
-        esr = np.interp(frequency, esr_df["Frequency (Hz)"], esr_df["esr"])
+    if esr_df.empty:
+        logger.info(f"sort out by missing esr: {order_number}")
+        esr_losses = np.nan
+    else:
+        esr_losses = 0.0
+        for count_frequency, frequency in enumerate(frequency_list):
+            # interpolate ESR at given frequency
+            esr = np.interp(frequency, esr_df["Frequency (Hz)"], esr_df["esr"])
 
-        # loss = R * I_RMS ** 2 = R * 0.5 * I_Peak ** 2 (peak due to the fft output)
-        # parallel capacitors reduce the I_Peak according to the number of parallel same-value(!) capacitors
-        esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
+            # loss = R * I_RMS ** 2 = R * 0.5 * I_Peak ** 2 (peak due to the fft output)
+            # parallel capacitors reduce the I_Peak according to the number of parallel same-value(!) capacitors
+            esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 
     return esr_losses

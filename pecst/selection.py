@@ -1,10 +1,11 @@
 """Select capacitors according to the requirements."""
+import pandas as pd
 
 # own libraries
 from pecst.ceramic.selection import select_ceramic_capacitors
 from pecst.cst_dataclasses import CapacitorRequirements
 
-def select_capacitors(c_requirements: CapacitorRequirements):
+def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
     Capacitor selection of all types: foil, ceramic, electrolytic.
 
