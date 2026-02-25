@@ -2,6 +2,7 @@
 
 # python libraries
 import pathlib
+import logging
 
 # 3rd party libraries
 import pandas as pd
@@ -9,6 +10,8 @@ import numpy as np
 
 # own libraries
 import pecst.constants as const
+
+logger = logging.getLogger(__name__)
 
 def read_ceramic_capacitor_frequency_dependent_limits(order_number: str) -> pd.DataFrame:
     """

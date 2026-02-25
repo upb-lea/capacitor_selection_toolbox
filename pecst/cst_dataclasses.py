@@ -12,7 +12,8 @@ class CapacitorType(IntEnum):
     """Enum for the capacitor type."""
 
     FilmCapacitor = 0
-    ElectrolyticCapacitor = 1
+    CeramicCapacitor = 1
+    ElectrolyticCapacitor = 2
 
 class CapacitanceTolerance(IntEnum):
     """Typical capacitance tolerance values as enum."""

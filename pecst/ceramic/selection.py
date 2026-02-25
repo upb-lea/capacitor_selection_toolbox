@@ -127,31 +127,17 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
             c_min_req=calculated_boundaries.requirement_c_min: dc_bias_series_parallel_connection(
                 x["ordering code"], x["capacitance"], v_dc_max, x["number_min_capacitors_in_series"], n_max_c, c_min_req), axis=1)
 
-        print(ceramic_df.shape)
-        print(ceramic_df.head())
-        ceramic_df.to_csv(f"{c_requirements.results_directory}/results_intermediate_ceramic.csv")
-
         # drop capacitors with no bias curve data given
-        print("drop data")
+        # leads to drop all values ... but works with the foil capacitors
         # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["in_series_needed"])].index)
-
-        print("after remove of nans")
-        print(ceramic_df.shape)
-        print(f"{frequency_list=}")
-        print(f"{current_amplitude_list=}")
 
         # loss calculation per capacitor
         logger.info("Power loss calculation")
         ceramic_df["power_loss_per_capacitor"] = ceramic_df.apply(
             lambda x: power_loss_ceramic_capacitor(x["ordering code"], frequency_list, current_amplitude_list, x["in_parallel_needed"]), axis=1)
 
-        print(ceramic_df.shape)
-
         # drop capacitors with no ESR curve data given
         # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["power_loss_per_capacitor"])].index)
-
-        print("after remove of nans")
-        print(ceramic_df.shape)
 
         # loss calculation for all capacitors
         ceramic_df.loc[:, 'power_loss_total'] = (
