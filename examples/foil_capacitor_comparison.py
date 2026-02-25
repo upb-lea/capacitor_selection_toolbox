@@ -32,7 +32,7 @@ capacitor_requirements = pecst.CapacitorRequirements(
 )
 
 # capacitor pareto plane calculation
-c_name_list, c_db_list = pecst.select_capacitors(capacitor_requirements)
+c_name_list, c_db_list = pecst.select_foil_capacitors(capacitor_requirements)
 c_name_list[1] = c_name_list[1].replace("B3272*AGT", "B3272*A/G/T")
 color_list = [pecst.gnome_colors["black"], pecst.gnome_colors["red"], pecst.gnome_colors["blue"]]
 

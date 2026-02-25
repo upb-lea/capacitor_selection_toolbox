@@ -113,8 +113,9 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
     # sort out all capacitors where to many series capacitors are required (more than maximum in series allowed)
     ceramic_df["number_min_capacitors_in_series"] = np.ceil(
         c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+    logger.info(f"Initial ceramic dataframe shape: {ceramic_df.shape}")
     ceramic_df = ceramic_df.drop(ceramic_df[ceramic_df["number_min_capacitors_in_series"] > c_requirements.maximum_number_series_capacitors].index)
-
+    logger.info(f"Ceramic dataframe shape after dropping number_min_capacitors_in_series > maximum_number_series_capacitors: {ceramic_df.shape}")
     if len(ceramic_df["capacitance"]) == 0:
         # all capacitors are sorted out due to lifetime ratings. Add empty keys
         ceramic_df["volume_total"] = np.nan
@@ -130,7 +131,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
         # drop capacitors with no bias curve data given
         # leads to drop all values ... but works with the foil capacitors
         # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["in_series_needed"])].index)
-
+        logger.info(f"Ceramic dataframe shape after dropping NaNs with in_series_needed: {ceramic_df.shape}")
         # loss calculation per capacitor
         logger.info("Power loss calculation")
         ceramic_df["power_loss_per_capacitor"] = ceramic_df.apply(
@@ -138,6 +139,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
 
         # drop capacitors with no ESR curve data given
         # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["power_loss_per_capacitor"])].index)
+        logger.info(f"Ceramic dataframe shape after dropping NaNs with power_loss_per_capacitor: {ceramic_df.shape}")
 
         # loss calculation for all capacitors
         ceramic_df.loc[:, 'power_loss_total'] = (
@@ -171,7 +173,7 @@ if __name__ == "__main__":
         temperature_ambient=90,
         voltage_safety_margin_percentage=10,
         capacitor_type_list=[CapacitorType.FilmCapacitor],
-        maximum_number_series_capacitors=2,
+        maximum_number_series_capacitors=10,
         capacitor_tolerance_percent=CapacitanceTolerance.TenPercent,
         lifetime_h=30_000,
         results_directory=os.path.dirname(os.path.abspath(__file__))
