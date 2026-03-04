@@ -45,7 +45,7 @@ def get_useful_lifetime(df: pd.DataFrame, voltage: float) -> float:
 
 
 def get_lifetime_current_derating_factor(ambient_temperature: float, target_lifetime: float, useful_lifetime: float,
-                                         lt_derating_dto_list: list[LifetimeMultiplier]) -> float:
+                                         lt_derating_dto_list: list[LifetimeMultiplier]) -> pd.Series:
     """
     Get the current derating factor due to lifetime limitations.
 
@@ -90,7 +90,7 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
     elif ambient_temperature > lt_dto.current_factor_vs_temperature["temperature"].max():
         current_derating_factor = np.nan
 
-    return current_derating_factor  # type: ignore
+    return pd.Series([lt_derating_life_multiplier, current_derating_factor])  # type: ignore
 
 
 def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
@@ -141,11 +141,12 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
         logger.debug("Lifetime derating.")
         c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df: get_useful_lifetime(lt, voltage=x["v_r_V"]), axis=1)
 
-        print(c_db.head())
-
         # get lifetime derating factor
-        c_db["factor_i_actual_i_rated"] = c_db.apply(lambda x, lt_factor=lt_df_factors: get_lifetime_current_derating_factor(
+        c_db[["lt_derating_life_multiplier", "factor_i_actual_i_rated"]] = c_db.apply(lambda x, lt_factor=lt_df_factors: get_lifetime_current_derating_factor(
             c_requirements.temperature_ambient, c_requirements.lifetime_h, x["nominal_lifetime"], lt_factor), axis=1)
+
+        # drop capacitors where the factor_i_actual_i_rated is NaN
+        c_db = c_db.drop(c_db[np.isnan(c_db["factor_i_actual_i_rated"])].index)
 
         # voltage: calculate the number of needed capacitors in a series connection
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
@@ -155,7 +156,8 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
-        print(f"After in series needed calculation: {c_db=}")
+        logger.debug(f"After in series needed calculation: {c_db.head()=}")
+        c_db.to_csv(f"{c_requirements.results_directory}/results_intermediate_electrolytic_{capacitor_series_name}.csv")
 
         if len(c_db["capacitance"]) == 0:
             # all capacitors are sorted out due to lifetime ratings. Add empty keys
@@ -178,7 +180,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                     ripple_current_multiplier_dto_list=i_r_mult, i_rated=x["i_r_100hz_85degree_A"],
                     factor_i_actual_i_rated=x["factor_i_actual_i_rated"]), axis=1)
 
-            print(f"After in parallel needed calculation: {c_db=}")
+            logger.info(f"After in parallel needed calculation: {c_db.head()=}")
 
             # check if parallel capacitors due to current needed is more than due to capacitance needed
             c_db["in_parallel_needed"] = c_db["in_parallel_needed_lifetime"]
@@ -186,7 +188,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "in_parallel_needed_capacitance"]
             c_db = c_db.drop(columns=["in_parallel_needed_capacitance", "in_parallel_needed_lifetime"])
 
-            print(f"After in parallel sort-out: {c_db=}")
+            logger.info(f"After in parallel sort-out: {c_db.head()=}")
 
             # volume calculation
             logger.debug("Volume calculation.")
@@ -224,7 +226,7 @@ if __name__ == "__main__":
         maximum_peak_to_peak_voltage_ripple=1,
         current_waveform_for_op_max_current=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [18, 25, -18, -25, 18]]),
         v_dc_for_op_max_voltage=600,
-        temperature_ambient=60,
+        temperature_ambient=70,
         voltage_safety_margin_percentage=10,
         capacitor_type_list=[CapacitorType.ElectrolyticCapacitor],
         maximum_number_series_capacitors=8,

@@ -154,7 +154,6 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     ripple_current_multiplier_dto_list: list[RippleCurrentMultiplier] = []
     ripple_current_multiplier: RippleCurrentMultiplier
     lt_multiplier_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_ripple_current_multiplier_*")
-    print(f"{lt_multiplier_data_files=}")
     for lt_multiplier_data_file in lt_multiplier_data_files:
         voltage_list = str(lt_multiplier_data_file.stem).replace(f"{capacitor_series_name}_ripple_current_multiplier_", "").split("_")
         for voltage_str in voltage_list:
