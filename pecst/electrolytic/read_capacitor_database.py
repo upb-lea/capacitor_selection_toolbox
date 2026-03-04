@@ -7,11 +7,10 @@ import logging
 # 3rd party libraries
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
 
 # own libraries
 from pecst import constants as const
-from pecst.cst_dataclasses import CapacitanceOverFrequency, EsrOverTemperature, EsrOverFrequency, LifetimeMultiplier
+from pecst.cst_dataclasses import CapacitanceOverFrequency, EsrOverTemperature, EsrOverFrequency, LifetimeMultiplier, RippleCurrentMultiplier
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,9 @@ def get_str_value_from_str(text: str, start: str, end: str) -> str:
         logger.info("Delimiters not found")
     return res
 
-def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, pd.DataFrame, list[LifetimeMultiplier], list[EsrOverTemperature], list[CapacitanceOverFrequency]]:
+def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
+    pd.DataFrame, pd.DataFrame, list[LifetimeMultiplier], list[EsrOverTemperature], list[CapacitanceOverFrequency],
+        list[RippleCurrentMultiplier], list[EsrOverFrequency]]:
     """
     Load dc film capacitors from the database.
 
@@ -57,7 +58,7 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[pd.DataFra
     electrolytic_capacitor_curves_path = pathlib.PurePath(path.parents[1], const.ELECTROLYTIC_CAPACITOR_DOWNLOAD_DIRECTORY, capacitor_series_name)
 
     database_path = pathlib.PurePath(electrolytic_capacitor_series_path, f"{capacitor_series_name}.csv")
-    c_df = pd.read_csv(database_path, sep=';', decimal='.')
+    c_df = pd.read_csv(database_path, sep=';', decimal=',')
 
     # drop unused columns to reduce the data set
     c_df = c_df.drop(columns=["multiplier"])
@@ -88,7 +89,8 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[pd.DataFra
         voltage_list = str(c_vs_f_data_file.stem).replace(f"{capacitor_series_name}_c_vs_f_", "").split("_")
         for voltage_str in voltage_list:
             c_vs_f_dto = CapacitanceOverFrequency(voltage=float(voltage_str.replace("V", "")),
-                                      capacitance_vs_frequency=pd.read_csv(c_vs_f_data_file, decimal='.', delimiter=',', header=0, names=["frequency", "factor_capacitance"]))
+                                                  capacitance_vs_frequency=pd.read_csv(
+                                                      c_vs_f_data_file, decimal='.', delimiter=',', header=0, names=["frequency", "factor_capacitance"]))
             c_vs_f_dto_list.append(c_vs_f_dto)
 
     # ESR over temperature
@@ -134,10 +136,22 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[pd.DataFra
     lifetime_path = pathlib.PurePath(electrolytic_capacitor_curves_path, f"{capacitor_series_name}_lifetime.csv")
     lt_df = pd.read_csv(lifetime_path, decimal=',', delimiter=';')
 
-    return c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list
+    # read ripple current multipliers
+    ripple_current_multiplier_dto_list: list[RippleCurrentMultiplier] = []
+    ripple_current_multiplier: RippleCurrentMultiplier
+    lt_multiplier_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_ripple_current_multiplier_*")
+    print(f"{lt_multiplier_data_files=}")
+    for lt_multiplier_data_file in lt_multiplier_data_files:
+        voltage_list = str(lt_multiplier_data_file.stem).replace(f"{capacitor_series_name}_ripple_current_multiplier_", "").split("_")
+        for voltage_str in voltage_list:
+            voltage = voltage_str.replace("V", "")
+            ripple_current_multiplier = RippleCurrentMultiplier(
+                voltage=float(voltage), current_multiplier_vs_frequency=pd.read_csv(
+                    lt_multiplier_data_file, decimal=',', delimiter=';').sort_values(by=["frequency"]))
+            ripple_current_multiplier_dto_list.append(ripple_current_multiplier)
+
+    return c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list
 
 
 if __name__ == "__main__":
     load_electrolytic_capacitors("056057psmsi")
-
-

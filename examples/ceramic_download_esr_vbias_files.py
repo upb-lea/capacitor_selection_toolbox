@@ -12,10 +12,7 @@ import requests
 
 # 3rd party libraries
 import pandas as pd
-from matplotlib import pyplot as plt
 import pickle
-
-
 
 debug = False
 ask_api = True
@@ -271,105 +268,105 @@ for c in part_number_config_list:
         print("Fetching csv for capacitance:", c)
         for plot_type in plot_types:
             updated_payload_part = {
-            "id": 1,
-            "instances": 1,
-            "capDisplay": c["capDisplay"],
-            "dielectric": c["dielectric"],
-            "maxTemp": c["maxTemp"],
-            "kemetPn": c["kemetPn"],
-            "basePn": c["basePn"],
-            "series": c["series"],
-            "appDef": "Commercial/Standard Chips",
-            "spicePn": "",
-            "capType": c["capType"],
-            "capValue": 10,
-            "voltageRating": c["voltageRating"],
-            "ceProps": [],
-            "hidden": False,
-            "param": {
-                "qty": {
-                    "title": "Qty",
-                    "select": 1,
-                    "min": 1,
-                    "max": 1000,
-                    "step": 1,
-                    "disabled": False,
-                    "width": 6
-                },
-                "bias": {
-                    "title": "Bias (VDC)",
-                    "select": 0,
-                    "min": 0,
-                    "max": 10,
-                    "step": 0.1,
-                    "disabled": False,
-                    "width": 6
-                },
-                "tempAmbient": {
-                    "title": "Amb (°C)",
-                    "select": c["param"]["tempAmbient"]["select"],
-                    "min": c["param"]["tempAmbient"]["min"],
-                    "max": c["param"]["tempAmbient"]["max"],
-                    "step": 1,
-                    "disabled": False,
-                    "width": 6
-                }
-            },
-            "tolerance": {
-                "title": "Tolerance",
-                "select": "K",
-                "disabled": False,
+                "id": 1,
+                "instances": 1,
+                "capDisplay": c["capDisplay"],
+                "dielectric": c["dielectric"],
+                "maxTemp": c["maxTemp"],
+                "kemetPn": c["kemetPn"],
+                "basePn": c["basePn"],
+                "series": c["series"],
+                "appDef": "Commercial/Standard Chips",
+                "spicePn": "",
+                "capType": c["capType"],
+                "capValue": 10,
+                "voltageRating": c["voltageRating"],
+                "ceProps": [],
                 "hidden": False,
-                "options": [
-                    {
-                        "value": "B",
-                        "label": ".1pF",
-                        "disabled": False
+                "param": {
+                    "qty": {
+                        "title": "Qty",
+                        "select": 1,
+                        "min": 1,
+                        "max": 1000,
+                        "step": 1,
+                        "disabled": False,
+                        "width": 6
                     },
-                    {
-                        "value": "C",
-                        "label": ".25pF",
-                        "disabled": False
+                    "bias": {
+                        "title": "Bias (VDC)",
+                        "select": 0,
+                        "min": 0,
+                        "max": 10,
+                        "step": 0.1,
+                        "disabled": False,
+                        "width": 6
                     },
-                    {
-                        "value": "D",
-                        "label": ".5pF",
-                        "disabled": False
-                    },
-                    {
-                        "value": "F",
-                        "label": "1%",
-                        "disabled": False
-                    },
-                    {
-                        "value": "G",
-                        "label": "2%",
-                        "disabled": False
-                    },
-                    {
-                        "value": "J",
-                        "label": "5%",
-                        "disabled": False
-                    },
-                    {
-                        "value": "K",
-                        "label": "10%",
-                        "disabled": False
-                    },
-                    {
-                        "value": "M",
-                        "label": "20%",
-                        "disabled": False
+                    "tempAmbient": {
+                        "title": "Amb (°C)",
+                        "select": c["param"]["tempAmbient"]["select"],
+                        "min": c["param"]["tempAmbient"]["min"],
+                        "max": c["param"]["tempAmbient"]["max"],
+                        "step": 1,
+                        "disabled": False,
+                        "width": 6
                     }
-                ]
-            },
-            "filmProps": {},
-            "seedProps": [],
-            "displayAllCeProps": False,
-            "tcc": "",
-            "vcac": ""
+                },
+                "tolerance": {
+                    "title": "Tolerance",
+                    "select": "K",
+                    "disabled": False,
+                    "hidden": False,
+                    "options": [
+                        {
+                            "value": "B",
+                            "label": ".1pF",
+                            "disabled": False
+                        },
+                        {
+                            "value": "C",
+                            "label": ".25pF",
+                            "disabled": False
+                        },
+                        {
+                            "value": "D",
+                            "label": ".5pF",
+                            "disabled": False
+                        },
+                        {
+                            "value": "F",
+                            "label": "1%",
+                            "disabled": False
+                        },
+                        {
+                            "value": "G",
+                            "label": "2%",
+                            "disabled": False
+                        },
+                        {
+                            "value": "J",
+                            "label": "5%",
+                            "disabled": False
+                        },
+                        {
+                            "value": "K",
+                            "label": "10%",
+                            "disabled": False
+                        },
+                        {
+                            "value": "M",
+                            "label": "20%",
+                            "disabled": False
+                        }
+                    ]
+                },
+                "filmProps": {},
+                "seedProps": [],
+                "displayAllCeProps": False,
+                "tcc": "",
+                "vcac": ""
             }
-            payload["parts"][1] = updated_payload_part
+            payload["parts"][1] = updated_payload_part  # type: ignore
             payload["plotType"] = plot_type
 
             response = requests.post(url, json=payload)
@@ -407,7 +404,7 @@ types_list.append({"type": "ceramic", "partStatus": "active"})
 configs_to_fetch = types_list.copy()
 
 # get series for type
-series = []
+series: list = []
 
 for type in types_list:
     url = "https://ksim3.kemet.com/series"
@@ -425,7 +422,7 @@ for type in types_list:
         print("Response Body:", response.text)
 
 # get sizes
-sizes = []
+sizes: list = []
 print("Fetching sizes...")
 configs_with_sizes = []
 
@@ -442,4 +439,3 @@ for config in configs_to_fetch:
 # Fetching size for config: {'type': 'ceramic', 'partStatus': 'active', 'series': 'AC Rated (CAN Series)'}
 # configs with sizes item: {'type': 'ceramic', 'partStatus': 'active', 'series': 'AC Rated (CAN Series)', 'size': 'C0805'}
 # configs with sizes item: {'type': 'ceramic', 'partStatus': 'active', 'series': 'AC Rated (CAN Series)', 'size': 'C1206'}
-

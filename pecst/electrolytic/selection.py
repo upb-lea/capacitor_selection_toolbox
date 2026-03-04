@@ -1,20 +1,21 @@
-
+"""Select electrolytic capacitors."""
 
 # python libraries
 import logging
 import os
-import pathlib
 
 # 3rd party libraries
 import pandas as pd
 import numpy as np
-
+from matplotlib import pyplot as plt
 # own libraries
 import pecst.constants as const
 from pecst.functions import fft, calculate_from_requirements
 from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.electrolytic.read_capacitor_database import load_electrolytic_capacitors
 from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeMultiplier
+from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
+from pecst.electrolytic.power_loss import power_loss_electrolytic_capacitor
 
 logger = logging.getLogger(__name__)
 
@@ -30,41 +31,31 @@ def get_useful_lifetime(df: pd.DataFrame, voltage: float) -> float:
     :return: useful lifetime in hours
     :rtype: float
     """
-    lifetime_h = df["lifetime_85degree_h"].loc[(df["u_R_V"] == voltage)]
+    lifetime_df = df["lifetime_85degree_h"].loc[(df["u_R_V"] == voltage)]
 
-    if len(lifetime_h.values) != 1:
+    if len(lifetime_df.values) != 1:
         lifetime_h = np.nan
         logger.debug("Value can not be found in the thermal coefficient database. Something must be wrong with the table data.\n"
                      f"{voltage=}")
     else:
-        lifetime_h = float(lifetime_h.values[0])
+        lifetime_h = float(lifetime_df.values[0])
 
     return float(lifetime_h)
 
 
-
-def neighbors(x, df):
-    d = (df["life_multiplier"] - x)
-    return df.loc[[d[d == d[d > 0].min()].index[0], d[d == d[d < 0].max()].index[0]]]
-
-def upper_neighbor(x, df):
-    d = (df["life_multiplier"] - x)
-
-    try:
-        upper_neighbor_df = df.loc[[d[d == d[d > 0].min()].index[0]]]
-        return upper_neighbor_df
-    except:
-        return np.nan
-
-
-def get_lifetime_current_derating_factor(ambient_temperature: float, target_lifetime: float, useful_lifetime: float, lt_derating_dto_list: list[LifetimeMultiplier]) -> float:
+def get_lifetime_current_derating_factor(ambient_temperature: float, target_lifetime: float, useful_lifetime: float,
+                                         lt_derating_dto_list: list[LifetimeMultiplier]) -> float:
     """
-
+    Get the current derating factor due to lifetime limitations.
 
     :param ambient_temperature: ambient temperature in degree Celsius
     :type ambient_temperature: float
-    :param df_derating: dataframe with temperature derating information
-    :type df_derating: pd.DataFrame
+    :param target_lifetime: target lifetime in hours
+    :type target_lifetime: float
+    :param useful_lifetime: Useful nominal lifetime for the capacitor
+    :type useful_lifetime: float
+    :param lt_derating_dto_list: List of LifetimeMultiplier DTOs
+    :type lt_derating_dto_list: list[LifetimeMultiplier]
     :return: derating factor
     :rtype: float
     """
@@ -73,9 +64,9 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
         return np.nan
 
     # find the nearest lifetime multiplier greater than the target one
-    lt_derating_life_multiplier = 100
-    minimum_multiplier_difference = 100
-    lt_dto = None
+    lt_derating_life_multiplier = 100.0
+    minimum_multiplier_difference = 100.0
+    lt_dto = lt_derating_dto_list[0]
     for lt_derating_dto in lt_derating_dto_list:
         multiplier_difference = lt_derating_dto.life_multiplier - target_lifetime_multiplier
 
@@ -88,7 +79,8 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
         # no higher multiplier has been found
         return np.nan
 
-    current_derating_factor = np.interp(ambient_temperature, lt_dto.current_factor_vs_temperature["temperature"], lt_dto.current_factor_vs_temperature["current_factor"])
+    current_derating_factor = np.interp(ambient_temperature, lt_dto.current_factor_vs_temperature["temperature"],
+                                        lt_dto.current_factor_vs_temperature["current_factor"])
 
     # limit current derating factor below minimum given temperature
     if ambient_temperature < lt_dto.current_factor_vs_temperature["temperature"].min():
@@ -97,7 +89,7 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
     elif ambient_temperature > lt_dto.current_factor_vs_temperature["temperature"].max():
         current_derating_factor = np.nan
 
-    return current_derating_factor
+    return current_derating_factor  # type: ignore
 
 
 def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
@@ -131,93 +123,78 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
-    path = pathlib.Path(__file__)
-
     for capacitor_series_name in const.ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST:
         logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
         logger.debug("Load capacitor csv data from disk.")
-        c_db, lt_df, lt_df_factors, esr_vs_temperature_dto_list, c_vs_f_dto_list = load_electrolytic_capacitors(capacitor_series_name)
+        c_db, lt_df, lt_df_factors, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list = (
+            load_electrolytic_capacitors(capacitor_series_name))
 
         # current lifetime_h derating
         logger.debug("Lifetime derating.")
-        c_db["nominal_lifetime"] = c_db.apply(lambda x: get_useful_lifetime(lt_df, voltage=x["v_r_V"]), axis=1)
+        c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df: get_useful_lifetime(lt, voltage=x["v_r_V"]), axis=1)
 
         print(c_db.head())
 
         # get lifetime derating factor
-        c_db["current_derating_factor"] = c_db.apply(lambda x: get_lifetime_current_derating_factor(
-            c_requirements.temperature_ambient, c_requirements.lifetime_h, x["nominal_lifetime"], lt_df_factors), axis=1)
-
-
-        print(c_db.head())
-
-
+        c_db["factor_i_actual_i_rated"] = c_db.apply(lambda x, lt_factor=lt_df_factors: get_lifetime_current_derating_factor(
+            c_requirements.temperature_ambient, c_requirements.lifetime_h, x["nominal_lifetime"], lt_factor), axis=1)
 
         # voltage: calculate the number of needed capacitors in a series connection
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
         logger.debug("Calculate in series needed capacitors.")
-        c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
-                                                                                     (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+        c_db["in_series_needed"] = np.ceil(
+            c_requirements.v_dc_for_op_max_voltage / (c_db["v_r_V"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
+
+        print(f"After in series needed calculation: {c_db=}")
 
         if len(c_db["capacitance"]) == 0:
             # all capacitors are sorted out due to lifetime ratings. Add empty keys
             c_db["volume_total"] = np.nan
             c_db["power_loss_total"] = np.nan
+            c_db["area_total"] = np.nan
         else:
             # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
             logger.debug("Calculate in parallel needed capacitors due to capacitance.")
-            c_db["in_parallel_needed"] = np.ceil(
+            c_db["in_parallel_needed_capacitance"] = np.ceil(
                 calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
                                                            (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
 
-            # current: calculate the number of parallel capacitors needed to meet the current requirement
+            # current: calculate the number of parallel capacitors needed to meet the lifetime requirement
             logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")
-            c_db["parallel_current_capacitors_needed"] = c_db.apply(lambda x, der_f=derating_factor: current_capability_film_capacitor(
-                order_number=x["ordering code"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list, derating_factor=der_f),
-                axis=1)
+            c_db["in_parallel_needed_lifetime"] = c_db.apply(
+                lambda x, i_r_mult=ripple_current_multiplier_dto_list: parallel_electrolytic_capacitors_lifetime_current_capability(
+                    voltage=x["v_r_V"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list,
+                    ripple_current_multiplier_dto_list=i_r_mult, i_rated=x["i_r_100hz_85degree_A"],
+                    factor_i_actual_i_rated=x["factor_i_actual_i_rated"]), axis=1)
+
+            print(f"After in parallel needed calculation: {c_db=}")
 
             # check if parallel capacitors due to current needed is more than due to capacitance needed
-            index_dvdt = c_db["in_parallel_needed_dvdt"] > c_db["in_parallel_needed"]
-            c_db.loc[index_dvdt, "in_parallel_needed"] = c_db.loc[index_dvdt, "in_parallel_needed_dvdt"]
+            c_db["in_parallel_needed"] = c_db["in_parallel_needed_lifetime"]
+            index_ripple_current = c_db["in_parallel_needed_capacitance"] > c_db["in_parallel_needed_lifetime"]
+            c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "in_parallel_needed_capacitance"]
+            c_db = c_db.drop(columns=["in_parallel_needed_capacitance", "in_parallel_needed_lifetime"])
 
-            # check if parallel capacitors due to current needed is more than due to capacitance needed
-            index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
-            c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
-            c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
+            print(f"After in parallel sort-out: {c_db=}")
 
             # volume calculation
             logger.debug("Volume calculation.")
             c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-            # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
-            # ESL_total = L * n_serial / n_parallel
-            # C_total = C * n_parallel / n_serial
-            # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
-            logger.debug("Resonance frequency filtering.")
-            c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
-
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
-            c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                                              x["in_parallel_needed"]), axis=1)
+            c_db["power_loss_per_capacitor"] = c_db.apply(
+                lambda x, esr_f=esr_vs_frequency_dto_list, esr_t=esr_vs_temperature_dto_list: power_loss_electrolytic_capacitor(
+                    esr_nominal=x["esr_100hz_Ohm"], capacitor_nominal_voltage=x["v_r_V"], ambient_temperature=c_requirements.temperature_ambient,
+                    frequency_list=frequency_list,
+                    current_amplitude_list=current_amplitude_list, number_parallel_capacitors=x["in_parallel_needed"],
+                    esr_vs_frequency_dto_list=esr_f, esr_vs_temperature_dto_list=esr_t), axis=1)
             # loss calculation for all capacitors
             c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
-
-            # self heating calculation
-            # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-            logger.debug("Self heating.")
-            c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
-                c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
-            c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
-            c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
-
-            # drop too high self-heated capacitors
-            c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
 
             # calculate minimum required PCB area
             c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
@@ -250,3 +227,7 @@ if __name__ == "__main__":
 
     # capacitor pareto plane calculation
     c_name_list, c_db_list = select_electrolytic_capacitors(capacitor_requirements)
+
+    plt.scatter(c_db_list[0]["volume_total"], c_db_list[0]["power_loss_total"])
+    plt.grid()
+    plt.show()

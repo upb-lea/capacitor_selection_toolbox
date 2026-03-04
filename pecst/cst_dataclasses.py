@@ -55,20 +55,35 @@ class LifetimeDerating:
 
 @dataclass
 class CapacitanceOverFrequency:
+    """Curve Capacitance(frequency) at a capacitor with a rated voltage class."""
+
     voltage: float
     capacitance_vs_frequency: pd.DataFrame
 
 @dataclass
 class EsrOverTemperature:
+    """Curve ESR(temperature) at a capacitor with a rated voltage class."""
+
     voltage: float
     esr_vs_temperature: pd.DataFrame
 
 @dataclass
 class EsrOverFrequency:
+    """Curve ESR(frequency) at a capacitor with a rated voltage class."""
+
     voltage: float
     esr_vs_frequency: pd.DataFrame
 
 @dataclass
 class LifetimeMultiplier:
+    """Lifetime multiplier at a capacitor with a rated voltage class."""
+
     life_multiplier: float
     current_factor_vs_temperature: pd.DataFrame
+
+@dataclass
+class RippleCurrentMultiplier:
+    """Ripple current multiplier at a capacitor with a rated voltage class."""
+
+    voltage: float
+    current_multiplier_vs_frequency: pd.DataFrame

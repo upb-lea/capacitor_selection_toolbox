@@ -5,3 +5,4 @@ from pecst.foil.esr_downloads import *
 from pecst.foil.lifetime import *
 from pecst.foil.power_loss import *
 from pecst.foil.read_capacitor_database import *
+from pecst.foil.selection import *

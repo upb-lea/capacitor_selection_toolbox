@@ -1,4 +1,6 @@
 """Initialize the package."""
+
+# capacitor independent types
 from pecst.functions import *
 from pecst.cst_dataclasses import *
 from pecst.constants import *
@@ -7,6 +9,8 @@ from pecst.cost_models import *
 from pecst.colors import *
 from pecst.filter import *
 from pecst.selection import select_capacitors as select_capacitors
-import pecst.foil
-from pecst.foil.selection import *
+
+# capacitor specific types
+from pecst.foil import *
 from pecst.ceramic import *
+from pecst.electrolytic import *

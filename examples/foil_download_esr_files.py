@@ -9,4 +9,3 @@ import pecst
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
 pecst.foil.download_esr_csv_files()
-
