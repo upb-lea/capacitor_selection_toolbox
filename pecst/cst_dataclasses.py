@@ -52,3 +52,23 @@ class LifetimeDerating:
     voltage: float
     temperature: float
     lifetime: pd.DataFrame
+
+@dataclass
+class CapacitanceOverFrequency:
+    voltage: float
+    capacitance_vs_frequency: pd.DataFrame
+
+@dataclass
+class EsrOverTemperature:
+    voltage: float
+    esr_vs_temperature: pd.DataFrame
+
+@dataclass
+class EsrOverFrequency:
+    voltage: float
+    esr_vs_frequency: pd.DataFrame
+
+@dataclass
+class LifetimeMultiplier:
+    life_multiplier: float
+    current_factor_vs_temperature: pd.DataFrame

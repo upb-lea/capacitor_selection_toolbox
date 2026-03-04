@@ -1,4 +1,4 @@
-"""Download capacitor ESR files."""
+"""Download foil capacitor ESR files."""
 
 # python libraries
 import requests
