@@ -62,7 +62,7 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
     """
     target_lifetime_multiplier = target_lifetime / useful_lifetime
     if target_lifetime_multiplier < 1:
-        return np.nan
+        return pd.Series([np.nan, np.nan])  # type: ignore
 
     # find the nearest lifetime multiplier greater than the target one
     lt_derating_life_multiplier = 100.0
@@ -78,7 +78,7 @@ def get_lifetime_current_derating_factor(ambient_temperature: float, target_life
 
     if lt_derating_life_multiplier == 100:
         # no higher multiplier has been found
-        return np.nan
+        return pd.Series([np.nan, np.nan])  # type: ignore
 
     current_derating_factor = np.interp(ambient_temperature, lt_dto.current_factor_vs_temperature["temperature"],
                                         lt_dto.current_factor_vs_temperature["current_factor"])
