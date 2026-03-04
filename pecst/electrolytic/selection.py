@@ -15,7 +15,7 @@ from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.electrolytic.read_capacitor_database import load_electrolytic_capacitors
 from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeMultiplier
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
-from pecst.electrolytic.power_loss import power_loss_electrolytic_capacitor
+from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor
 
 logger = logging.getLogger(__name__)
 
@@ -188,11 +188,12 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
             c_db["power_loss_per_capacitor"] = c_db.apply(
-                lambda x, esr_f=esr_vs_frequency_dto_list, esr_t=esr_vs_temperature_dto_list: power_loss_electrolytic_capacitor(
-                    esr_nominal=x["esr_100hz_Ohm"], capacitor_nominal_voltage=x["v_r_V"], ambient_temperature=c_requirements.temperature_ambient,
+                lambda x, esr_f=esr_vs_frequency_dto_list, esr_t=esr_vs_temperature_dto_list: power_loss_per_electrolytic_capacitor(
+                    esr_nominal=x["esr_100hz_Ohm"], capacitor_rated_voltage=x["v_r_V"], ambient_temperature=c_requirements.temperature_ambient,
                     frequency_list=frequency_list,
                     current_amplitude_list=current_amplitude_list, number_parallel_capacitors=x["in_parallel_needed"],
-                    esr_vs_frequency_dto_list=esr_f, esr_vs_temperature_dto_list=esr_t), axis=1)
+                    esr_vs_frequency_dto_list=esr_f, esr_vs_temperature_dto_list=esr_t, capacitor_nominal_capacitance=x["capacitance"],
+                    operating_voltage_per_capacitor=c_requirements.v_dc_for_op_max_voltage / x["in_series_needed"]), axis=1)
             # loss calculation for all capacitors
             c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
