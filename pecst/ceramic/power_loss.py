@@ -71,4 +71,4 @@ def power_loss_ceramic_capacitor(order_number: str, frequency_list: list[float],
             # parallel capacitors reduce the I_Peak according to the number of parallel same-value(!) capacitors
             esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 
-    return esr_losses
+    return esr_losses  # type: ignore
