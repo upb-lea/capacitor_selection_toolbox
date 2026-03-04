@@ -62,6 +62,13 @@ class CapacitanceOverFrequency:
     capacitance_vs_frequency: pd.DataFrame
 
 @dataclass
+class CapacitanceOverTemperature:
+    """Curve Capacitance(temperature) at a capacitor with a rated voltage class."""
+
+    voltage: float
+    capacitance_vs_temperature: pd.DataFrame
+
+@dataclass
 class EsrOverTemperature:
     """Curve ESR(temperature) at a capacitor with a rated voltage class."""
 

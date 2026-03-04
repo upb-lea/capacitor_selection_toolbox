@@ -16,7 +16,7 @@ from pecst.electrolytic.read_capacitor_database import load_electrolytic_capacit
 from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeMultiplier
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
 from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor
-from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency
+from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency, calc_capacitance_factor_temperature
 
 logger = logging.getLogger(__name__)
 
@@ -127,12 +127,15 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
         # select all suitable capacitors including derating and thermal information from the database
         logger.debug("Load capacitor csv data from disk.")
-        c_db, lt_df, lt_df_factors, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list = (
-            load_electrolytic_capacitors(capacitor_series_name))
+        (c_db, lt_df, lt_df_factors, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list,
+         c_vs_temperature_dto_list) = load_electrolytic_capacitors(capacitor_series_name)
 
         # capacitance loss due to frequency and temperature
         c_db["capacitance_factor_base_frequency"] = c_db.apply(lambda x, c_vs_f_list=c_vs_f_dto_list: calc_capacitance_factor_frequency(
             c_vs_f_list, x["v_r_V"], frequency_list[0]), axis=1)
+
+        c_db["capacitance_factor_temperature"] = c_db.apply(lambda x, c_vs_t_list=c_vs_temperature_dto_list: calc_capacitance_factor_temperature(
+            c_vs_t_list, x["v_r_V"], c_requirements.temperature_ambient), axis=1)
 
         # current lifetime_h derating
         logger.debug("Lifetime derating.")
@@ -164,6 +167,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             logger.debug("Calculate in parallel needed capacitors due to capacitance.")
             c_db["in_parallel_needed_capacitance"] = np.ceil(
                 calculated_boundaries.requirement_c_min / (c_db["capacitance"] * c_db["capacitance_factor_base_frequency"] * \
+                                                           c_db["capacitance_factor_temperature"] * \
                                                            (1 - const.ELECTROLYTIC_DEFAULT_TOLERANCE_PERCENT / 100) / c_db["in_series_needed"]))
 
             # current: calculate the number of parallel capacitors needed to meet the lifetime requirement

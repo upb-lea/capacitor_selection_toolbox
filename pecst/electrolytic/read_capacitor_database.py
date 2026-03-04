@@ -10,7 +10,8 @@ import numpy as np
 
 # own libraries
 from pecst import constants as const
-from pecst.cst_dataclasses import CapacitanceOverFrequency, EsrOverTemperature, EsrOverFrequency, LifetimeMultiplier, RippleCurrentMultiplier
+from pecst.cst_dataclasses import (CapacitanceOverFrequency, EsrOverTemperature, EsrOverFrequency, LifetimeMultiplier, RippleCurrentMultiplier,
+                                   CapacitanceOverTemperature)
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,7 @@ def get_str_value_from_str(text: str, start: str, end: str) -> str:
 
 def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     pd.DataFrame, pd.DataFrame, list[LifetimeMultiplier], list[EsrOverTemperature], list[CapacitanceOverFrequency],
-        list[RippleCurrentMultiplier], list[EsrOverFrequency]]:
+        list[RippleCurrentMultiplier], list[EsrOverFrequency], list[CapacitanceOverTemperature]]:
     """
     Load dc film capacitors from the database.
 
@@ -92,6 +93,19 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
                                                   capacitance_vs_frequency=pd.read_csv(
                                                       c_vs_f_data_file, decimal='.', delimiter=',', header=0, names=["frequency", "factor_capacitance"]))
             c_vs_f_dto_list.append(c_vs_f_dto)
+
+    # capacitance over temperature
+    c_vs_temperature_dto_list: list[CapacitanceOverTemperature] = []
+    c_vs_temperature_dto: CapacitanceOverTemperature
+    capacitance_vs_temperature_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_c_vs_f_*")
+    for c_vs_temperature_data_file in capacitance_vs_temperature_data_files:
+        voltage_list = str(c_vs_temperature_data_file.stem).replace(f"{capacitor_series_name}_c_vs_f_", "").split("_")
+        for voltage_str in voltage_list:
+            c_vs_temperature_dto = CapacitanceOverTemperature(voltage=float(voltage_str.replace("V", "")),
+                                                              capacitance_vs_temperature=pd.read_csv(
+                                                                  c_vs_temperature_data_file, decimal='.', delimiter=',', header=0,
+                                                                  names=["temperature", "factor_capacitance"]))
+            c_vs_temperature_dto_list.append(c_vs_temperature_dto)
 
     # ESR over temperature
     esr_vs_temperature_dto_list: list[EsrOverTemperature] = []
@@ -150,7 +164,8 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
                     lt_multiplier_data_file, decimal=',', delimiter=';').sort_values(by=["frequency"]))
             ripple_current_multiplier_dto_list.append(ripple_current_multiplier)
 
-    return c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list
+    return (c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list,
+            ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list, c_vs_temperature_dto_list)
 
 
 if __name__ == "__main__":
