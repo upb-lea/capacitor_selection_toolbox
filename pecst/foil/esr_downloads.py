@@ -1,4 +1,4 @@
-"""Download capacitor ESR files."""
+"""Download foil capacitor ESR files."""
 
 # python libraries
 import requests
@@ -9,7 +9,7 @@ import logging
 
 # own libraries
 import pecst.constants as const
-from pecst.read_capacitor_database import load_dc_film_capacitors
+from pecst.foil.read_capacitor_database import load_dc_film_capacitors
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
     for capacitor_series_name in capacitor_series_name_list:
         c_db, c_thermal, c_derating, _, _ = load_dc_film_capacitors(capacitor_series_name)
 
-        esr_folder_name = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_DIRECTORY)
+        esr_folder_name = (pathlib.Path(__file__).parent).joinpath(const.FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY)
         if not esr_folder_name.exists():
             pathlib.Path.mkdir(esr_folder_name)
 
@@ -63,7 +63,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
             ordering_code_short = ordering_code.replace("000", "")
 
             # generate csv file path
-            save_path = (pathlib.Path(__file__).parent).joinpath(const.ESR_OVER_FREQUENCY_DIRECTORY, f"{ordering_code}.csv")
+            save_path = (pathlib.Path(__file__).parent).joinpath(const.FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY, f"{ordering_code}.csv")
             if save_path.exists():
                 logger.debug(f"{save_path} already exists. Skip download.")
             else:

@@ -12,11 +12,13 @@ class CapacitorType(IntEnum):
     """Enum for the capacitor type."""
 
     FilmCapacitor = 0
-    ElectrolyticCapacitor = 1
+    CeramicCapacitor = 1
+    ElectrolyticCapacitor = 2
 
 class CapacitanceTolerance(IntEnum):
     """Typical capacitance tolerance values as enum."""
 
+    TwentyPercent = 20
     TenPercent = 10
     FivePercent = 5
 
@@ -51,3 +53,45 @@ class LifetimeDerating:
     voltage: float
     temperature: float
     lifetime: pd.DataFrame
+
+@dataclass
+class CapacitanceOverFrequency:
+    """Curve Capacitance(frequency) at a capacitor with a rated voltage class."""
+
+    voltage: float
+    capacitance_vs_frequency: pd.DataFrame
+
+@dataclass
+class CapacitanceOverTemperature:
+    """Curve Capacitance(temperature) at a capacitor with a rated voltage class."""
+
+    voltage: float
+    capacitance_vs_temperature: pd.DataFrame
+
+@dataclass
+class EsrOverTemperature:
+    """Curve ESR(temperature) at a capacitor with a rated voltage class."""
+
+    voltage: float
+    esr_vs_temperature: pd.DataFrame
+
+@dataclass
+class EsrOverFrequency:
+    """Curve ESR(frequency) at a capacitor with a rated voltage class."""
+
+    voltage: float
+    esr_vs_frequency: pd.DataFrame
+
+@dataclass
+class LifetimeMultiplier:
+    """Lifetime multiplier at a capacitor with a rated voltage class."""
+
+    life_multiplier: float
+    current_factor_vs_temperature: pd.DataFrame
+
+@dataclass
+class RippleCurrentMultiplier:
+    """Ripple current multiplier at a capacitor with a rated voltage class."""
+
+    voltage: float
+    current_multiplier_vs_frequency: pd.DataFrame

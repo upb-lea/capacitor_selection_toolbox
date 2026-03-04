@@ -4,12 +4,15 @@ results/
 *.nlc
 *.npz
 */__pycache__/
+*/*/__pycache__/
 *.sqlite3
 *.html
 *.ods
 *.ods#
 *.zip
 *.pkl
+*.json
+*.log
 dictionary.dic
 workspace/
 pecst/esr_downloads/*
@@ -18,3 +21,7 @@ pecst/esr_downloads/*
 examples/*.csv
 dist/
 gpgit/
+trial/
+trial.py
+foil_downloads/
+ceramic_downloads/
