@@ -18,6 +18,7 @@ class CapacitorType(IntEnum):
 class CapacitanceTolerance(IntEnum):
     """Typical capacitance tolerance values as enum."""
 
+    TwentyPercent = 20
     TenPercent = 10
     FivePercent = 5
 

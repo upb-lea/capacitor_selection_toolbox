@@ -161,7 +161,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             logger.debug("Calculate in parallel needed capacitors due to capacitance.")
             c_db["in_parallel_needed_capacitance"] = np.ceil(
                 calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
-                                                           (1 - c_requirements.capacitor_tolerance_percent / 100) / c_db["in_series_needed"]))
+                                                           (1 - const.ELECTROLYTIC_DEFAULT_TOLERANCE_PERCENT / 100) / c_db["in_series_needed"]))
 
             # current: calculate the number of parallel capacitors needed to meet the lifetime requirement
             logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")

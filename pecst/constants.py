@@ -3,6 +3,9 @@
 # 3rd party libraries
 import pandas as pd
 
+# own libraries
+from pecst.cst_dataclasses import CapacitanceTolerance
+
 # milli, micro, nano to normal
 MILLI_TO_NORM = 1e-3
 MICRO_TO_NORM = 1e-6
@@ -22,6 +25,11 @@ SQUARE_METER_TO_SQUARE_DECI_METER = 1e2
 SQUARE_METER_TO_SQUARE_CENTI_METER = 1e4
 SQUARE_METER_TO_SQUARE_MILLI_METER = 1e6
 
+# temperatures
+TEMPERATURE_85 = 85
+TEMPERATURE_105 = 105
+TEMPERATURE_125 = 125
+
 # folder names
 FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY = "foil_downloads"
 FOIL_CAPACITOR_DATA_DIRECTORY = "foil_capacitor_data"
@@ -34,12 +42,11 @@ CERAMIC_CAPACITOR_DOWNLOAD_DIRECTORY = "ceramic_downloads"
 FOIL_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
 FOIL_CAPACITOR_SERIES_VALUES = "series_values"
 
+# available foil capacitor series
 ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST = ["056057psmsi"]
+ELECTROLYTIC_DEFAULT_TOLERANCE_PERCENT = CapacitanceTolerance.TwentyPercent
 
-TEMPERATURE_85 = 85
-TEMPERATURE_105 = 105
-TEMPERATURE_125 = 125
-
+# SMD ceramic capacitor section
 SMD_SIZE_DICT = {"size": ["C0402", "C0603", "C0805", "C1206", "C1210", "C1808", "C1812", "C1825", "C2220", "C2225", "C3040", "CAN06", "CAN08", "CAN12",
                           "CAN13", "CAN17", "CAN18", "CAN19", "CAN21", "CAN22", "CKC18", "CKC21", "CKC33", "CAS21"],
                  "area": [5.16128e-07, 1.1612879999999997e-06, 2.58064e-06, 4.645151999999999e-06, 7.74192e-06, 9.290303999999999e-06, 1.3935455999999997e-05,
