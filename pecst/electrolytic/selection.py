@@ -16,6 +16,7 @@ from pecst.electrolytic.read_capacitor_database import load_electrolytic_capacit
 from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeMultiplier
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
 from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor
+from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency
 
 logger = logging.getLogger(__name__)
 
@@ -100,10 +101,8 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
      - reads in all available capacitor data depending on the given capacitor type
      - use series connection up to a maximum given number of capacitors to reach the operating voltage
      - adds parallel capacitors to reach the minimum required capacitance value
-     - adds parallel capacitors to not raise the current limit per capacitor
-     - considers current derating according to the ambient temperature
-     - considers self-heating derating according to the ambient temperature
-     - sort out non-working designs/construction (raising voltage limits, raising temperature limits)
+     - adds parallel capacitors to not raise the current limit (due to lifetime and ambient temperature) per capacitor
+     - sort out non-working designs/construction (raising voltage limits)
 
     The resulting pandas data frame contains the whole Pareto plane with all technically possible capacitor designs.
     Filtering e.g. for the Pareto front must be done in a separate step by the user.
@@ -130,6 +129,10 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
         logger.debug("Load capacitor csv data from disk.")
         c_db, lt_df, lt_df_factors, esr_vs_temperature_dto_list, c_vs_f_dto_list, ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list = (
             load_electrolytic_capacitors(capacitor_series_name))
+
+        # capacitance loss due to frequency and temperature
+        c_db["capacitance_factor_base_frequency"] = c_db.apply(lambda x, c_vs_f_list=c_vs_f_dto_list: calc_capacitance_factor_frequency(
+            c_vs_f_list, x["v_r_V"], frequency_list[0]), axis=1)
 
         # current lifetime_h derating
         logger.debug("Lifetime derating.")
@@ -160,7 +163,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
             logger.debug("Calculate in parallel needed capacitors due to capacitance.")
             c_db["in_parallel_needed_capacitance"] = np.ceil(
-                calculated_boundaries.requirement_c_min / (c_db["capacitance"] * \
+                calculated_boundaries.requirement_c_min / (c_db["capacitance"] * c_db["capacitance_factor_base_frequency"] * \
                                                            (1 - const.ELECTROLYTIC_DEFAULT_TOLERANCE_PERCENT / 100) / c_db["in_series_needed"]))
 
             # current: calculate the number of parallel capacitors needed to meet the lifetime requirement
