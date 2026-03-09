@@ -169,5 +169,5 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
 
 if __name__ == "__main__":
     (c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list,
-            ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list, c_vs_temperature_dto_list) = load_electrolytic_capacitors("058059pllsi")
+        ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list, c_vs_temperature_dto_list) = load_electrolytic_capacitors("058059pllsi")
     print(f"{c_df}")

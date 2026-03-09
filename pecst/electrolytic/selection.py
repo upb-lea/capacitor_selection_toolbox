@@ -32,6 +32,8 @@ def get_useful_lifetime(df: pd.DataFrame, voltage: float, rated_temperature: flo
     :type df: pandas.DataFrame
     :param voltage: capacitor voltage
     :type voltage: float
+    :param rated_temperature: rated capacitor temperature in degree Celsius
+    :type rated_temperature: float
     :return: useful lifetime in hours
     :rtype: float
     """
@@ -150,7 +152,8 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
         # current lifetime_h derating
         logger.debug("Lifetime derating.")
-        c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df: get_useful_lifetime(lt, voltage=x["v_r_V"], rated_temperature=rated_temperature), axis=1)
+        c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df, rt=rated_temperature: get_useful_lifetime(lt, voltage=x["v_r_V"], rated_temperature=rt),
+                                              axis=1)
 
         # get lifetime derating factor
         c_db[["lt_derating_life_multiplier", "factor_i_actual_i_rated"]] = c_db.apply(lambda x, lt_factor=lt_df_factors: get_lifetime_current_derating_factor(
@@ -186,9 +189,9 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             # current: calculate the number of parallel capacitors needed to meet the lifetime requirement
             logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")
             c_db["in_parallel_needed_lifetime"] = c_db.apply(
-                lambda x, i_r_mult=ripple_current_multiplier_dto_list: parallel_electrolytic_capacitors_lifetime_current_capability(
+                lambda x, i_r_mult=ripple_current_multiplier_dto_list, rt=rated_temperature: parallel_electrolytic_capacitors_lifetime_current_capability(
                     voltage=x["v_r_V"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list,
-                    ripple_current_multiplier_dto_list=i_r_mult, i_rated=x[f"i_r_100hz_{rated_temperature}degree_A"],
+                    ripple_current_multiplier_dto_list=i_r_mult, i_rated=x[f"i_r_100hz_{rt}degree_A"],
                     factor_i_actual_i_rated=x["factor_i_actual_i_rated"]), axis=1)
 
             logger.info(f"After in parallel needed calculation: {c_db.head()=}")
@@ -250,7 +253,7 @@ if __name__ == "__main__":
     # capacitor pareto plane calculation
     c_name_list, c_db_list = select_electrolytic_capacitors(capacitor_requirements)
 
-    for count, value in enumerate(c_db_list):
+    for count, _ in enumerate(c_db_list):
         plt.scatter(c_db_list[count]["volume_total"], c_db_list[count]["power_loss_total"],
                     label=c_name_list[count], color=pecst.colors.gnome_colors_list[count])
     plt.legend()

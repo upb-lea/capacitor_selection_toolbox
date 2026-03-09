@@ -29,7 +29,6 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_electrolytic_name_list, c_electrolytic_db_list = select_electrolytic_capacitors(c_requirements)
         technology_list.append("electrolytic")
 
-
     c_db = c_ceramic_db_list + c_db_foil + c_electrolytic_db_list
 
     return technology_list, c_db
