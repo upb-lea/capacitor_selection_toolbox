@@ -3,11 +3,14 @@
 # python libraries
 import logging
 import os
+import pathlib
 
 # 3rd party libraries
 import pandas as pd
 import numpy as np
 from matplotlib import pyplot as plt
+import pecst.colors
+
 # own libraries
 import pecst.constants as const
 from pecst.functions import fft, calculate_from_requirements
@@ -21,7 +24,7 @@ from pecst.electrolytic.capacitance_change import calc_capacitance_factor_freque
 logger = logging.getLogger(__name__)
 
 
-def get_useful_lifetime(df: pd.DataFrame, voltage: float) -> float:
+def get_useful_lifetime(df: pd.DataFrame, voltage: float, rated_temperature: float) -> float:
     """
     Read the useful lifetime (from data sheet).
 
@@ -29,10 +32,12 @@ def get_useful_lifetime(df: pd.DataFrame, voltage: float) -> float:
     :type df: pandas.DataFrame
     :param voltage: capacitor voltage
     :type voltage: float
+    :param rated_temperature: rated capacitor temperature in degree Celsius
+    :type rated_temperature: float
     :return: useful lifetime in hours
     :rtype: float
     """
-    lifetime_df = df["lifetime_85degree_h"].loc[(df["u_R_V"] == voltage)]
+    lifetime_df = df[f"lifetime_{rated_temperature}degree_h"].loc[(df["u_R_V"] == voltage)]
 
     if len(lifetime_df.values) != 1:
         lifetime_h = np.nan
@@ -122,8 +127,16 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
     [frequency_list, current_amplitude_list, _] = fft(c_requirements.current_waveform_for_op_max_current, plot='no',
                                                       mode='time', title='ffT input current')
 
+    path = pathlib.Path(__file__)
+    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.ELECTROLYTIC_CAPACITOR_DATA_DIRECTORY,
+                                                    f"{const.ELECTROLYTIC_CAPACITOR_SERIES_VALUES}.csv")
+    series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
+
     for capacitor_series_name in const.ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST:
-        logger.info(f"Capacitor series: {capacitor_series_name}")
+        logger.info(f"Capacitor capacitor_series_name: {capacitor_series_name}")
+
+        # get capacitor rated temperature
+        rated_temperature = series_values.loc[series_values["series"] == capacitor_series_name, "rated_temperature"].values[0]
 
         # select all suitable capacitors including derating and thermal information from the database
         logger.debug("Load capacitor csv data from disk.")
@@ -139,7 +152,8 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
         # current lifetime_h derating
         logger.debug("Lifetime derating.")
-        c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df: get_useful_lifetime(lt, voltage=x["v_r_V"]), axis=1)
+        c_db["nominal_lifetime"] = c_db.apply(lambda x, lt=lt_df, rt=rated_temperature: get_useful_lifetime(lt, voltage=x["v_r_V"], rated_temperature=rt),
+                                              axis=1)
 
         # get lifetime derating factor
         c_db[["lt_derating_life_multiplier", "factor_i_actual_i_rated"]] = c_db.apply(lambda x, lt_factor=lt_df_factors: get_lifetime_current_derating_factor(
@@ -175,9 +189,9 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             # current: calculate the number of parallel capacitors needed to meet the lifetime requirement
             logger.debug("Calculate in parallel needed capacitors due to current limitation over frequency.")
             c_db["in_parallel_needed_lifetime"] = c_db.apply(
-                lambda x, i_r_mult=ripple_current_multiplier_dto_list: parallel_electrolytic_capacitors_lifetime_current_capability(
+                lambda x, i_r_mult=ripple_current_multiplier_dto_list, rt=rated_temperature: parallel_electrolytic_capacitors_lifetime_current_capability(
                     voltage=x["v_r_V"], frequency_list=frequency_list, current_amplitude_list=current_amplitude_list,
-                    ripple_current_multiplier_dto_list=i_r_mult, i_rated=x["i_r_100hz_85degree_A"],
+                    ripple_current_multiplier_dto_list=i_r_mult, i_rated=x[f"i_r_100hz_{rt}degree_A"],
                     factor_i_actual_i_rated=x["factor_i_actual_i_rated"]), axis=1)
 
             logger.info(f"After in parallel needed calculation: {c_db.head()=}")
@@ -196,6 +210,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
+
             c_db["power_loss_per_capacitor"] = c_db.apply(
                 lambda x, esr_f=esr_vs_frequency_dto_list, esr_t=esr_vs_temperature_dto_list: power_loss_per_electrolytic_capacitor(
                     esr_nominal=x["esr_100hz_Ohm"], capacitor_rated_voltage=x["v_r_V"], ambient_temperature=c_requirements.temperature_ambient,
@@ -217,7 +232,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
         capacitor_df_list.append(c_db)
 
-    return const.FOIL_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
+    return const.ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
 
 
 if __name__ == "__main__":
@@ -238,6 +253,9 @@ if __name__ == "__main__":
     # capacitor pareto plane calculation
     c_name_list, c_db_list = select_electrolytic_capacitors(capacitor_requirements)
 
-    plt.scatter(c_db_list[0]["volume_total"], c_db_list[0]["power_loss_total"])
+    for count, _ in enumerate(c_db_list):
+        plt.scatter(c_db_list[count]["volume_total"], c_db_list[count]["power_loss_total"],
+                    label=c_name_list[count], color=pecst.colors.gnome_colors_list[count])
+    plt.legend()
     plt.grid()
     plt.show()
