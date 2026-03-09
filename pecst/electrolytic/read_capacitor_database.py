@@ -45,7 +45,7 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     pd.DataFrame, pd.DataFrame, list[LifetimeMultiplier], list[EsrOverTemperature], list[CapacitanceOverFrequency],
         list[RippleCurrentMultiplier], list[EsrOverFrequency], list[CapacitanceOverTemperature]]:
     """
-    Load dc film capacitors from the database.
+    Load electrolytic capacitors from the database.
 
     :param capacitor_series_name: name of the capacitor series to download
     :type capacitor_series_name: str
@@ -59,7 +59,7 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     electrolytic_capacitor_curves_path = pathlib.PurePath(path.parents[1], const.ELECTROLYTIC_CAPACITOR_DOWNLOAD_DIRECTORY, capacitor_series_name)
 
     database_path = pathlib.PurePath(electrolytic_capacitor_series_path, f"{capacitor_series_name}.csv")
-    c_df = pd.read_csv(database_path, sep=';', decimal=',')
+    c_df = pd.read_csv(database_path, sep=',', decimal='.')
 
     # drop unused columns to reduce the data set
     c_df = c_df.drop(columns=["multiplier"])
@@ -110,14 +110,14 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     # ESR over temperature
     esr_vs_temperature_dto_list: list[EsrOverTemperature] = []
     esr_vs_temperature_dto: EsrOverTemperature
-    esr_vs_temperature_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_esr_vs_temperature_*")
+    esr_vs_temperature_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_factor_esr_vs_temperature_*")
 
     for esr_vs_temperature_data_file in esr_vs_temperature_data_files:
-        voltage_list = str(esr_vs_temperature_data_file.stem).replace(f"{capacitor_series_name}_esr_vs_temperature_", "").split("_")
+        voltage_list = str(esr_vs_temperature_data_file.stem).replace(f"{capacitor_series_name}_factor_esr_vs_temperature_", "").split("_")
         for voltage_str in voltage_list:
             esr_vs_temperature_dto = EsrOverTemperature(
                 voltage=float(voltage_str.replace("V", "")), esr_vs_temperature=pd.read_csv(
-                    esr_vs_temperature_data_file, decimal=',', delimiter=';', header=0, names=["temperature", "factor_esr"]).sort_values(by=["temperature"]))
+                    esr_vs_temperature_data_file, decimal='.', delimiter=',', header=0, names=["temperature", "factor_esr"]).sort_values(by=["temperature"]))
 
             esr_vs_temperature_dto_list.append(esr_vs_temperature_dto)
 
@@ -131,7 +131,7 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
         for voltage_str in voltage_list:
             esr_vs_frequency_dto = EsrOverFrequency(
                 voltage=float(voltage_str.replace("V", "")), esr_vs_frequency=pd.read_csv(
-                    esr_vs_frequency_data_file, decimal=',', delimiter=';', header=0, names=["frequency", "factor_esr"]).sort_values(by=["frequency"]))
+                    esr_vs_frequency_data_file, decimal='.', delimiter=',', header=0, names=["frequency", "factor_esr"]).sort_values(by=["frequency"]))
 
             esr_vs_frequency_dto_list.append(esr_vs_frequency_dto)
 
@@ -143,12 +143,12 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
         multiplier = str(lt_multiplier_data_file.stem).replace(f"{capacitor_series_name}_lifetime_factor_", "").split("_")[0]
         lt_multiplier_dto = LifetimeMultiplier(
             life_multiplier=float(multiplier), current_factor_vs_temperature=pd.read_csv(
-                lt_multiplier_data_file, decimal=',', delimiter=';').sort_values(by=["temperature"]))
+                lt_multiplier_data_file, decimal='.', delimiter=',').sort_values(by=["temperature"]))
         lt_multiplier_dto_list.append(lt_multiplier_dto)
 
     # read nominal useful life
     lifetime_path = pathlib.PurePath(electrolytic_capacitor_curves_path, f"{capacitor_series_name}_lifetime.csv")
-    lt_df = pd.read_csv(lifetime_path, decimal=',', delimiter=';')
+    lt_df = pd.read_csv(lifetime_path, decimal='.', delimiter=',')
 
     # read ripple current multipliers
     ripple_current_multiplier_dto_list: list[RippleCurrentMultiplier] = []
@@ -160,7 +160,7 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
             voltage = voltage_str.replace("V", "")
             ripple_current_multiplier = RippleCurrentMultiplier(
                 voltage=float(voltage), current_multiplier_vs_frequency=pd.read_csv(
-                    lt_multiplier_data_file, decimal=',', delimiter=';').sort_values(by=["frequency"]))
+                    lt_multiplier_data_file, decimal='.', delimiter=',').sort_values(by=["frequency"]))
             ripple_current_multiplier_dto_list.append(ripple_current_multiplier)
 
     return (c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list,
@@ -168,4 +168,6 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
 
 
 if __name__ == "__main__":
-    load_electrolytic_capacitors("056057psmsi")
+    (c_df, lt_df, lt_multiplier_dto_list, esr_vs_temperature_dto_list, c_vs_f_dto_list,
+            ripple_current_multiplier_dto_list, esr_vs_frequency_dto_list, c_vs_temperature_dto_list) = load_electrolytic_capacitors("058059pllsi")
+    print(f"{c_df}")
