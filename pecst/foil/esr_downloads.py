@@ -49,7 +49,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
         c_db, c_thermal, c_derating, _, _ = load_dc_film_capacitors(capacitor_series_name)
 
         esr_folder_name = (pathlib.Path(__file__).parents[1]).joinpath(const.FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY)
-        print(f"{esr_folder_name=}")
+        logger.debug(f"{esr_folder_name=}")
         if not esr_folder_name.exists():
             pathlib.Path.mkdir(esr_folder_name)
 
@@ -66,7 +66,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
             # generate csv file path
             save_path = esr_folder_name / f"{ordering_code}.csv"
             if save_path.exists():
-                print(f"{save_path} already exists. Skip download.")
+                logger.debug(f"{save_path} already exists. Skip download.")
             else:
                 url = (f"https://captools.tdk-electronics.tdk.com/CLARA/api/ApiWebCLARA/DownloadThermalRating?partNumber={ordering_code}"
                        f"&modelPartNumber={ordering_code_short}")
