@@ -141,7 +141,7 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
         logger.debug("Calculate in series needed capacitors.")
         c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
-                                                                                     (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+                                                                                     (1 - c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 

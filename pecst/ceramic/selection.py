@@ -112,7 +112,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
 
     # sort out all capacitors where to many series capacitors are required (more than maximum in series allowed)
     ceramic_df["number_min_capacitors_in_series"] = np.ceil(
-        c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+        c_requirements.v_dc_for_op_max_voltage / (ceramic_df["voltage"] * (1 - c_requirements.voltage_safety_margin_percentage / 100)))
     logger.info(f"Initial ceramic dataframe shape: {ceramic_df.shape}")
     ceramic_df = ceramic_df.drop(ceramic_df[ceramic_df["number_min_capacitors_in_series"] > c_requirements.maximum_number_series_capacitors].index)
     logger.info(f"Ceramic dataframe shape after dropping number_min_capacitors_in_series > maximum_number_series_capacitors: {ceramic_df.shape}")
