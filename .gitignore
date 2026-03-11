@@ -25,3 +25,4 @@ trial/
 trial.py
 foil_downloads/
 ceramic_downloads/
+results_*.csv
