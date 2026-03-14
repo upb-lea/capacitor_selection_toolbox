@@ -31,7 +31,7 @@ def read_capacitor_frequency_dependent_limits(order_number: str) -> pd.DataFrame
     path = pathlib.Path(__file__)
 
     # path to esr file
-    esr_csv_filepath = pathlib.PurePath(path.parents[1], const.FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY, f"{order_number}.csv")
+    esr_csv_filepath = pathlib.PurePath(path.parents[1], const.FILM_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY, f"{order_number}.csv")
 
     df = pd.read_csv(esr_csv_filepath)
 

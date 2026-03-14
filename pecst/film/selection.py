@@ -11,13 +11,13 @@ import pandas as pd
 # own libraries
 from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.functions import fft, calculate_from_requirements
-from pecst.foil.read_capacitor_database import load_dc_film_capacitors
-from pecst.foil.power_loss import power_loss_film_capacitor
+from pecst.film.read_capacitor_database import load_dc_film_capacitors
+from pecst.film.power_loss import power_loss_film_capacitor
 import pecst.constants as const
 import pecst.cost_models as cost
-from pecst.foil.current_capability import current_capability_film_capacitor
-from pecst.foil.lifetime import voltage_rating_due_to_lifetime
-from pecst.foil.dvdt import calc_parallel_capacitors_dvdt
+from pecst.film.current_capability import current_capability_film_capacitor
+from pecst.film.lifetime import voltage_rating_due_to_lifetime
+from pecst.film.dvdt import calc_parallel_capacitors_dvdt
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +67,9 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
 
     return float(thermal_coefficient)
 
-def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
+def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
-    Select suitable foil capacitors for the given application.
+    Select suitable film capacitors for the given application.
 
     Function works as a "big filter":
      - reads in all available capacitor data depending on the given capacitor type
@@ -99,10 +99,10 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
                                                       mode='time', title='ffT input current')
 
     path = pathlib.Path(__file__)
-    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.FOIL_CAPACITOR_DATA_DIRECTORY, f"{const.FOIL_CAPACITOR_SERIES_VALUES}.csv")
+    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.FILM_CAPACITOR_DATA_DIRECTORY, f"{const.FILM_CAPACITOR_SERIES_VALUES}.csv")
     series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
 
-    for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
+    for capacitor_series_name in const.FILM_CAPACITOR_SERIES_NAME_LIST:
         logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
@@ -222,4 +222,4 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
 
         capacitor_df_list.append(c_db)
 
-    return const.FOIL_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
+    return const.FILM_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list

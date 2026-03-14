@@ -129,7 +129,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
                 x["ordering code"], x["capacitance"], v_dc_max, x["number_min_capacitors_in_series"], n_max_c, c_min_req), axis=1)
 
         # drop capacitors with no bias curve data given
-        # leads to drop all values ... but works with the foil capacitors
+        # leads to drop all values ... but works with the film capacitors
         # ceramic_df = ceramic_df.drop(ceramic_df[np.isnan(ceramic_df["in_series_needed"])].index)
         logger.info(f"Ceramic dataframe shape after dropping NaNs with in_series_needed: {ceramic_df.shape}")
         # loss calculation per capacitor

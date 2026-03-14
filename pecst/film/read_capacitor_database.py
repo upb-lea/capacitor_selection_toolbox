@@ -52,7 +52,7 @@ def load_dc_film_capacitors(capacitor_series_name: str) -> tuple[pd.DataFrame, p
     # capacitor data
     path = pathlib.Path(__file__)
 
-    film_capacitor_series_path = pathlib.PurePath(path.parents[1], const.FOIL_CAPACITOR_DATA_DIRECTORY, capacitor_series_name)
+    film_capacitor_series_path = pathlib.PurePath(path.parents[1], const.FILM_CAPACITOR_DATA_DIRECTORY, capacitor_series_name)
 
     database_path = pathlib.PurePath(film_capacitor_series_path, f"{capacitor_series_name}.csv")
     c_df = pd.read_csv(database_path, sep=';', decimal='.')
