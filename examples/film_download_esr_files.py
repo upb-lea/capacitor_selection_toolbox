@@ -8,4 +8,4 @@ import pecst
 # configure logging to show femmt terminal output
 logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.INFO)
 
-pecst.foil.download_esr_csv_files()
+pecst.film.download_esr_csv_files()
