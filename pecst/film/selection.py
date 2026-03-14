@@ -217,8 +217,8 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
 
-        logger.debug(f"Save results_foil_{capacitor_series_name}.csv")
-        c_db.to_csv(f"{c_requirements.results_directory}/results_foil_{capacitor_series_name}.csv")
+        logger.debug(f"Save results_film_{capacitor_series_name}.csv")
+        c_db.to_csv(f"{c_requirements.results_directory}/results_film_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)
 

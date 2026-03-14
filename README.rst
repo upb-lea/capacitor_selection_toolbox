@@ -2,7 +2,7 @@
 
 Power Electronics Capacitor Selection Toolbox (PE-CST)
 =========================================================================
-Toolbox to select suitable foil capacitors for power electronics applications.
+Toolbox to select suitable film capacitors for power electronics applications.
 
 
 Installation

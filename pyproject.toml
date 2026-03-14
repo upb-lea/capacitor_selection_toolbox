@@ -35,8 +35,8 @@ packages = ["pecst/"]
 [tool.hatch.build.targets.sdist]
 include = [
     "pecst/*.py",
-    "pecst/foil_capacitor_data/*.csv",
-    "pecst/foil_capacitor_data/*/*.csv",
+    "pecst/film_capacitor_data/*.csv",
+    "pecst/film_capacitor_data/*/*.csv",
     "tests",
     "requirements.txt"
 ]
