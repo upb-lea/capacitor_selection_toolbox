@@ -187,7 +187,7 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
             # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
             logger.debug("Resonance frequency filtering.")
             c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR < frequency_list[0]].index)
+            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR].index)
 
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
