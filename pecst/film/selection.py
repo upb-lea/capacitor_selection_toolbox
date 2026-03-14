@@ -181,12 +181,13 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
             c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
             # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+            # there must be a difference in the frequency of a given factor (typically 10)!
             # ESL_total = L * n_serial / n_parallel
             # C_total = C * n_parallel / n_serial
             # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
             logger.debug("Resonance frequency filtering.")
             c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
+            c_db = c_db.drop(c_db[c_db["f_res"] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR < frequency_list[0]].index)
 
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
