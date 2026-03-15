@@ -7,7 +7,7 @@ import logging
 import numpy as np
 import pandas as pd
 from scipy.interpolate import interp1d
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 
 # own libraries
 from pecst.cst_dataclasses import LifetimeDerating

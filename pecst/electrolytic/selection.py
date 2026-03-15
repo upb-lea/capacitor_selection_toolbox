@@ -8,7 +8,7 @@ import pathlib
 # 3rd party libraries
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 import pecst.colors
 
 # own libraries

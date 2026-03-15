@@ -7,7 +7,7 @@ import pathlib
 # 3rd party libraries
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 
 # own libraries
 from pecst.cst_dataclasses import CapacitorRequirements
