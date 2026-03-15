@@ -16,7 +16,7 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
     """
     c_db_film: list[pd.DataFrame] = []
     c_ceramic_db_list: list[pd.DataFrame] = []
-    c_electrolytic_db_list: list[pd.DataFrame] = []
+    c_db_electrolytic: list[pd.DataFrame] = []
     technology_list: list[str] = []
     if CapacitorType.CeramicCapacitor in c_requirements.capacitor_type_list:
         c_ceramic_name_list, c_ceramic_db_list = select_ceramic_capacitors(c_requirements)
@@ -27,8 +27,9 @@ def select_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str],
         c_db_film = [pd.concat(c_film_db_list)]
     if CapacitorType.ElectrolyticCapacitor in c_requirements.capacitor_type_list:
         c_electrolytic_name_list, c_electrolytic_db_list = select_electrolytic_capacitors(c_requirements)
+        c_db_electrolytic = [pd.concat(c_electrolytic_db_list)]
         technology_list.append("electrolytic")
 
-    c_db = c_ceramic_db_list + c_db_film + c_electrolytic_db_list
+    c_db = c_ceramic_db_list + c_db_film + c_db_electrolytic
 
     return technology_list, c_db

@@ -79,10 +79,10 @@ line-ending = "auto"
 
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.12"
 warn_return_any = true
 warn_unused_configs = true
 disallow_incomplete_defs = true
 exclude = []
 
-ignore_missing_imports = true
+ignore_missing_imports = false

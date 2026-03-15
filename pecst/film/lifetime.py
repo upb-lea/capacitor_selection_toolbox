@@ -33,7 +33,7 @@ def get_voltage_from_semilogx_lifetime(lifetime: float, lifetime_vec: pd.Series,
         f = interp1d(log_lifetime_vec, voltage_vec)
         voltage = f(np.log10(lifetime))
     except:
-        voltage = np.nan
+        voltage = np.array(np.nan)
     return np.array(voltage)
 
 def voltage_rating_due_to_lifetime(target_lifetime: float, operating_temperature: float, voltage_rating: float,

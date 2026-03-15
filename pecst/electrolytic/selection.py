@@ -225,7 +225,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             c_db[["5min_leakage_current_per_capacitor", "permanent_leakage_current_per_capacitor"]] = c_db.apply(lambda x: calc_leakage_currents(
                 rated_capacitance=x["capacitance"], rated_voltage=x["v_r_V"]), axis=1)
 
-            c_db["r_parallel_max_new"] = c_db.apply(lambda x: calculate_r_parallel_max(
+            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_parallel_max(
                 x["5min_leakage_current_per_capacitor"], x["in_parallel_needed"], x["in_series_needed"], c_requirements.v_dc_for_op_max_voltage, x["v_r_V"]),
                 axis=1)
 
