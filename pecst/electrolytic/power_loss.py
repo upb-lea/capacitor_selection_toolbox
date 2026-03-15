@@ -4,25 +4,26 @@
 
 # 3rd party libraries
 import numpy as np
+import pandas as pd
 
 # own libraries
 from pecst.cst_dataclasses import EsrOverTemperature, EsrOverFrequency
 
-def calc_permanent_leakage_current(rated_capacitance: float, rated_voltage: float) -> float:
+def calc_leakage_currents(rated_capacitance: float, rated_voltage: float) -> pd.Series[float]:
     """
-    Get the permanent leakage current depending on the capacitance and on the rated voltage.
+    Get the 5 minutes leakage current and the permanent leakage current depending on the capacitance and on the rated voltage.
 
     :param rated_capacitance: rated capacitance in F
     :type rated_capacitance: float
     :param rated_voltage: rated voltage in V
     :type rated_voltage: float
-    :return: leakage current
+    :return: leakage current for 5 minutes and permanent value
     """
     # 5 minutes value
     i_leak_5_min = 0.002 * rated_capacitance * rated_voltage + 4e-6
     # the permanent leakage current is about 20% of the 5-minutes leakage current: https://www.vishay.com/docs/28356/alucapsintrobcc.pdf
     i_leak_permanent = 0.2 * i_leak_5_min
-    return i_leak_permanent
+    return pd.Series([i_leak_5_min, i_leak_permanent])
 
 def power_loss_per_electrolytic_capacitor(esr_nominal: float, capacitor_rated_voltage: float, ambient_temperature: float, frequency_list: list[float],
                                           current_amplitude_list: list[float], number_parallel_capacitors: int,
@@ -78,14 +79,14 @@ def power_loss_per_electrolytic_capacitor(esr_nominal: float, capacitor_rated_vo
         esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 
     # losses by leakage current
-    leakage_current = calc_permanent_leakage_current(rated_capacitance=capacitor_nominal_capacitance, rated_voltage=capacitor_rated_voltage)
-    leakage_losses = leakage_current * operating_voltage_per_capacitor
+    _, permanent_leakage_current = calc_leakage_currents(rated_capacitance=capacitor_nominal_capacitance, rated_voltage=capacitor_rated_voltage)
+    leakage_losses = permanent_leakage_current * operating_voltage_per_capacitor
 
     return esr_losses + leakage_losses
 
 
 if __name__ == "__main__":
-    permanent_leakage_current = calc_permanent_leakage_current(rated_capacitance=470e-6, rated_voltage=400)
+    _, permanent_leakage_current = calc_leakage_currents(rated_capacitance=470e-6, rated_voltage=400)
     leakage_loss = permanent_leakage_current * 380
     print(f"{permanent_leakage_current=}")
     print(f"{leakage_loss=}")
