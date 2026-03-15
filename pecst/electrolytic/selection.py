@@ -8,7 +8,7 @@ import pathlib
 # 3rd party libraries
 import pandas as pd
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 import pecst.colors
 
 # own libraries
@@ -18,8 +18,9 @@ from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.electrolytic.read_capacitor_database import load_electrolytic_capacitors
 from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeMultiplier
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
-from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor
+from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor, calc_leakage_currents
 from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency, calc_capacitance_factor_temperature
+from pecst.electrolytic.resistors import generate_resistor_list, calculate_r_parallel_max, look_for_closest_smaller_resistance, loss_per_resistor
 
 logger = logging.getLogger(__name__)
 
@@ -166,7 +167,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
         logger.debug("Calculate in series needed capacitors.")
         c_db["in_series_needed"] = np.ceil(
-            c_requirements.v_dc_for_op_max_voltage / (c_db["v_r_V"] * (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+            c_requirements.v_dc_for_op_max_voltage / (c_db["v_r_V"] * (1 - c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
@@ -218,8 +219,25 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                     current_amplitude_list=current_amplitude_list, number_parallel_capacitors=x["in_parallel_needed"],
                     esr_vs_frequency_dto_list=esr_f, esr_vs_temperature_dto_list=esr_t, capacitor_nominal_capacitance=x["capacitance"],
                     operating_voltage_per_capacitor=c_requirements.v_dc_for_op_max_voltage / x["in_series_needed"]), axis=1)
-            # loss calculation for all capacitors
-            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+
+            # calculate leakage current
+
+            c_db[["5min_leakage_current_per_capacitor", "permanent_leakage_current_per_capacitor"]] = c_db.apply(lambda x: calc_leakage_currents(
+                rated_capacitance=x["capacitance"], rated_voltage=x["v_r_V"]), axis=1)
+
+            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_parallel_max(
+                x["5min_leakage_current_per_capacitor"], x["in_parallel_needed"], x["in_series_needed"], c_requirements.v_dc_for_op_max_voltage, x["v_r_V"]),
+                axis=1)
+
+            e12_resistor_list = generate_resistor_list(const.E12_BASIC_LIST, [0, 1, 2, 3, 4, 5])
+            c_db["r_parallel"] = c_db.apply(lambda x, r_list=e12_resistor_list: look_for_closest_smaller_resistance(x["r_parallel_max"], r_list), axis=1)
+
+            c_db["loss_per_resistor"] = c_db.apply(lambda x: loss_per_resistor(
+                voltage_per_capacitor=c_requirements.v_dc_for_op_max_voltage / x["in_series_needed"], resistance=x["r_parallel"]), axis=1)
+
+            # loss calculation for all capacitors including balancing resistors
+            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
+                c_db["in_series_needed"] * c_db["loss_per_resistor"]
 
             # calculate minimum required PCB area
             c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
@@ -240,7 +258,7 @@ if __name__ == "__main__":
     capacitor_requirements = CapacitorRequirements(
         maximum_peak_to_peak_voltage_ripple=1,
         current_waveform_for_op_max_current=np.array([[0, 1.25e-6, 2.5e-6, 3.75e-6, 5e-6], [18, 25, -18, -25, 18]]),
-        v_dc_for_op_max_voltage=600,
+        v_dc_for_op_max_voltage=350,
         temperature_ambient=70,
         voltage_safety_margin_percentage=10,
         capacitor_type_list=[CapacitorType.ElectrolyticCapacitor],

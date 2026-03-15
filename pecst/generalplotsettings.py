@@ -1,6 +1,6 @@
 """Set general plot settings, like LaTeX font."""
 # 3rd party libraries
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 
 def global_plot_settings_font_latex() -> None:
     """Set the plot fonts to LaTeX-font."""

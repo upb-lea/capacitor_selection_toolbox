@@ -39,6 +39,7 @@ jobs:
           
             pip install types-requests
             pip install mypy
+            pip install scipy-stubs pandas-stubs 
             mypy $(git ls-files '*.py') 
       - name: Install packages for spell check and perform spell check
         run: |

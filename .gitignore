@@ -23,5 +23,6 @@ dist/
 gpgit/
 trial/
 trial.py
-foil_downloads/
+film_downloads/
 ceramic_downloads/
+results_*.csv

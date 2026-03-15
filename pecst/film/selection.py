@@ -11,13 +11,13 @@ import pandas as pd
 # own libraries
 from pecst.cst_dataclasses import CapacitorRequirements
 from pecst.functions import fft, calculate_from_requirements
-from pecst.foil.read_capacitor_database import load_dc_film_capacitors
-from pecst.foil.power_loss import power_loss_film_capacitor
+from pecst.film.read_capacitor_database import load_dc_film_capacitors
+from pecst.film.power_loss import power_loss_film_capacitor
 import pecst.constants as const
 import pecst.cost_models as cost
-from pecst.foil.current_capability import current_capability_film_capacitor
-from pecst.foil.lifetime import voltage_rating_due_to_lifetime
-from pecst.foil.dvdt import calc_parallel_capacitors_dvdt
+from pecst.film.current_capability import current_capability_film_capacitor
+from pecst.film.lifetime import voltage_rating_due_to_lifetime
+from pecst.film.dvdt import calc_parallel_capacitors_dvdt
 
 logger = logging.getLogger(__name__)
 
@@ -67,9 +67,9 @@ def get_equivalent_heat_coefficient(df: pd.DataFrame, width: float, length: floa
 
     return float(thermal_coefficient)
 
-def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
+def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[str], list[pd.DataFrame]]:
     """
-    Select suitable foil capacitors for the given application.
+    Select suitable film capacitors for the given application.
 
     Function works as a "big filter":
      - reads in all available capacitor data depending on the given capacitor type
@@ -99,10 +99,10 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
                                                       mode='time', title='ffT input current')
 
     path = pathlib.Path(__file__)
-    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.FOIL_CAPACITOR_DATA_DIRECTORY, f"{const.FOIL_CAPACITOR_SERIES_VALUES}.csv")
+    capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.FILM_CAPACITOR_DATA_DIRECTORY, f"{const.FILM_CAPACITOR_SERIES_VALUES}.csv")
     series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
 
-    for capacitor_series_name in const.FOIL_CAPACITOR_SERIES_NAME_LIST:
+    for capacitor_series_name in const.FILM_CAPACITOR_SERIES_NAME_LIST:
         logger.info(f"Capacitor series: {capacitor_series_name}")
 
         # select all suitable capacitors including derating and thermal information from the database
@@ -141,7 +141,7 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
         # the voltage rating is for t_op = t_ambient + delta_t_self_heating (see datasheet)
         logger.debug("Calculate in series needed capacitors.")
         c_db["in_series_needed"] = np.ceil(c_requirements.v_dc_for_op_max_voltage / (c_db['V_op_max_virt'] * c_db["factor_lifetime"] * \
-                                                                                     (1 + c_requirements.voltage_safety_margin_percentage / 100)))
+                                                                                     (1 - c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
 
@@ -181,12 +181,13 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
             c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
             # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+            # there must be a difference in the frequency of a given factor (typically 10)!
             # ESL_total = L * n_serial / n_parallel
             # C_total = C * n_parallel / n_serial
             # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
             logger.debug("Resonance frequency filtering.")
             c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0]].index)
+            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR].index)
 
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
@@ -217,9 +218,9 @@ def select_foil_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
 
-        logger.debug(f"Save results_foil_{capacitor_series_name}.csv")
-        c_db.to_csv(f"{c_requirements.results_directory}/results_foil_{capacitor_series_name}.csv")
+        logger.debug(f"Save results_film_{capacitor_series_name}.csv")
+        c_db.to_csv(f"{c_requirements.results_directory}/results_film_{capacitor_series_name}.csv")
 
         capacitor_df_list.append(c_db)
 
-    return const.FOIL_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list
+    return const.FILM_CAPACITOR_SERIES_NAME_LIST, capacitor_df_list

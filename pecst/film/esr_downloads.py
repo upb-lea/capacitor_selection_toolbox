@@ -1,4 +1,4 @@
-"""Download foil capacitor ESR files."""
+"""Download film capacitor ESR files."""
 
 # python libraries
 import requests
@@ -9,7 +9,7 @@ import logging
 
 # own libraries
 import pecst.constants as const
-from pecst.foil.read_capacitor_database import load_dc_film_capacitors
+from pecst.film.read_capacitor_database import load_dc_film_capacitors
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ def _download_file(url: str, save_path: str) -> None:
         logger.error(f"Error {e} while downloading capacitor url:{url}")
 
 
-def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CAPACITOR_SERIES_NAME_LIST) -> None:
+def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FILM_CAPACITOR_SERIES_NAME_LIST) -> None:
     """
     Download ESR over frequency data from the manufacturers homepage.
 
@@ -48,7 +48,7 @@ def download_esr_csv_files(capacitor_series_name_list: list[str] = const.FOIL_CA
     for capacitor_series_name in capacitor_series_name_list:
         c_db, c_thermal, c_derating, _, _ = load_dc_film_capacitors(capacitor_series_name)
 
-        esr_folder_name = (pathlib.Path(__file__).parents[1]).joinpath(const.FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY)
+        esr_folder_name = (pathlib.Path(__file__).parents[1]).joinpath(const.FILM_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY)
         logger.debug(f"{esr_folder_name=}")
         if not esr_folder_name.exists():
             pathlib.Path.mkdir(esr_folder_name)

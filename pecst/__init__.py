@@ -11,6 +11,6 @@ from pecst.filter import *
 from pecst.selection import select_capacitors as select_capacitors
 
 # capacitor specific types
-from pecst.foil import *
+from pecst.film import *
 from pecst.ceramic import *
 from pecst.electrolytic import *

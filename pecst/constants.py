@@ -31,15 +31,16 @@ TEMPERATURE_105 = 105
 TEMPERATURE_125 = 125
 
 # folder names
-FOIL_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY = "foil_downloads"
-FOIL_CAPACITOR_DATA_DIRECTORY = "foil_capacitor_data"
+FILM_CAPACITOR_ESR_OVER_FREQUENCY_DIRECTORY = "film_downloads"
+FILM_CAPACITOR_DATA_DIRECTORY = "film_capacitor_data"
 ELECTROLYTIC_CAPACITOR_DATA_DIRECTORY = "electrolytic_capacitor_data"
 ELECTROLYTIC_CAPACITOR_DOWNLOAD_DIRECTORY = "electrolytic_downloads"
 CERAMIC_CAPACITOR_DOWNLOAD_DIRECTORY = "ceramic_downloads"
 
-# foil capacitor settings
-FOIL_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
-FOIL_CAPACITOR_SERIES_VALUES = "series_values"
+# film capacitor settings
+FILM_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
+FILM_CAPACITOR_SERIES_VALUES = "series_values"
+FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR = 1
 
 # electrolytic capacitor settings
 ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST = ["056057psmsi", "058059pllsi"]
@@ -80,3 +81,7 @@ CAPACITANCE_TOLERANCE_KEMET_DICT = {"F": 0.01,
                                     "M": 0.2}
 
 MATERIAL_KEMET_DICT = {"G": "C0G"}
+
+
+# resistor
+E12_BASIC_LIST = [1, 1.2, 1.5, 1.8, 2.2, 2.7, 3.3, 3.9, 4.7, 5.6, 6.8, 8.2]
