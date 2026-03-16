@@ -133,7 +133,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
     path = pathlib.Path(__file__)
     capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.ELECTROLYTIC_CAPACITOR_DATA_DIRECTORY,
                                                     f"{const.ELECTROLYTIC_CAPACITOR_SERIES_VALUES}.csv")
-    series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
+    series_values = pd.read_csv(capacitor_series_values_path, delimiter=',', decimal='.')
 
     for capacitor_series_name in const.ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST:
         logger.info(f"Capacitor capacitor_series_name: {capacitor_series_name}")
