@@ -36,6 +36,7 @@ FILM_CAPACITOR_DATA_DIRECTORY = "film_capacitor_data"
 ELECTROLYTIC_CAPACITOR_DATA_DIRECTORY = "electrolytic_capacitor_data"
 ELECTROLYTIC_CAPACITOR_DOWNLOAD_DIRECTORY = "electrolytic_downloads"
 CERAMIC_CAPACITOR_DOWNLOAD_DIRECTORY = "ceramic_downloads"
+RESISTORS_DATA_DIRECTORY = "resistor_data"
 
 # film capacitor settings
 FILM_CAPACITOR_SERIES_NAME_LIST = ["B3271*P", "B3272*AGT", "B3277*P"]
@@ -46,6 +47,11 @@ FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR = 1
 ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST = ["056057psmsi", "058059pllsi"]
 ELECTROLYTIC_DEFAULT_TOLERANCE_PERCENT = CapacitanceTolerance.TwentyPercent
 ELECTROLYTIC_CAPACITOR_SERIES_VALUES = "series_values"
+
+# parallel resistor settings (for electrolytic capacitors)
+# from source https://www.vishay.com/docs/28730/ac_ac-at_ac-ni.pdf
+# currently only a single series is allowed!
+RESISTOR_SERIES_NAME = "ac"
 
 # SMD ceramic capacitor section
 SMD_SIZE_DICT = {"size": ["C0402", "C0603", "C0805", "C1206", "C1210", "C1808", "C1812", "C1825", "C2220", "C2225", "C3040", "CAN06", "CAN08", "CAN12",

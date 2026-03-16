@@ -20,7 +20,9 @@ from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeM
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
 from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor, calc_leakage_currents
 from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency, calc_capacitance_factor_temperature
-from pecst.electrolytic.resistors import generate_resistor_list, calculate_r_parallel_max, look_for_closest_smaller_resistance, loss_per_resistor
+from pecst.resistor.resistors import (generate_resistor_list, calculate_r_parallel_max, look_for_closest_smaller_resistance, loss_per_resistor,
+                                      select_resistor_area_volume)
+from pecst.resistor.read_resistor_database import load_resistors
 
 logger = logging.getLogger(__name__)
 
@@ -205,10 +207,6 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
             logger.info(f"After in parallel sort-out: {c_db.head()=}")
 
-            # volume calculation
-            logger.debug("Volume calculation.")
-            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
-
             # loss calculation per capacitor
             logger.debug("Power loss estimation by ESR.")
 
@@ -239,8 +237,21 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
                 c_db["in_series_needed"] * c_db["loss_per_resistor"]
 
+            # load resistor database
+            r_df = load_resistors("ac")
+
+            # resistor volume calculation
+            c_db[["area_per_resistor", "volume_per_resistor"]] = c_db.apply(lambda x, r=r_df: select_resistor_area_volume(
+                x["loss_per_resistor"], c_requirements.temperature_ambient, r), axis=1)
+
             # calculate minimum required PCB area
-            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
+                c_db["in_series_needed"] * c_db["area_per_resistor"]
+
+            # volume calculation
+            logger.debug("Volume calculation.")
+            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"] + \
+                c_db["in_series_needed"] * c_db["volume_per_resistor"]
 
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
