@@ -128,6 +128,30 @@ def select_resistor_area_volume(power_loss: float, ambient_temperature: float,
         volume = r_df.loc[r_df["power_rating_at_ambient_temperature"] == higher_rated_power]["volume"].values[0]
     return pd.Series([area, volume])
 
+def calculate_r_max_discharge(v_dc: float, n_parallel: int, n_series: int, c: float) -> float:
+    """
+    Discharge the DC link within 3 minutes below 50 volts. Calculate the maximum allowed resistance.
+
+    :param v_dc: DC link voltage in V
+    :type v_dc: float
+    :param n_parallel: number of parallel capacitors
+    :type n_parallel: int
+    :param n_series: number of series capacitors
+    :type n_series: int
+    :param c: capacitor capacitance in F
+    :type c: float
+    :return:
+    """
+    # constants
+    t_discharge = 180
+    v_safety = 50
+
+    v_start = v_dc / n_series
+    v_end = v_safety / n_series
+    r_parallel: float = -t_discharge / (n_parallel * c * np.log(v_end / v_start))
+
+    return r_parallel
+
 
 if __name__ == "__main__":
     r_closest = look_for_closest_smaller_resistance(r_max=105, resistor_list=[80, 90, 100, 110, 120])
