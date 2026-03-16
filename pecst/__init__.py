@@ -14,3 +14,6 @@ from pecst.selection import select_capacitors as select_capacitors
 from pecst.film import *
 from pecst.ceramic import *
 from pecst.electrolytic import *
+
+# resistor data (for balancing electrolytic capacitors)
+from pecst.resistor import *

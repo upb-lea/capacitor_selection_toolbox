@@ -2,8 +2,10 @@
 
 # 3rd party libraries
 import numpy as np
+import pandas as pd
 
 # own libraries
+from pecst.resistor.read_resistor_database import load_resistors
 
 def generate_resistor_list(e_series_basic_list, potency_list):
     """
@@ -63,6 +65,24 @@ def look_for_closest_smaller_resistance(r_max: float, resistor_list: list) -> fl
         r_closest = resistor_list[index_r_closest]
         return float(r_closest)
 
+
+def look_for_closest_higher_power(power: float, power_list: list) -> float:
+    """
+    Look for the closest higher power in power_list than the given power.
+
+    :param power: power in W
+    :type power: float
+    :param power_list: list of power
+    :type power_list: list
+    :return: closest and higher power in the list
+    """
+    if np.isnan(power):
+        return np.nan
+    else:
+        index_r_closest = np.searchsorted(power_list, [power, ], side='right')[0]
+        p_closest = power_list[index_r_closest]
+        return float(p_closest)
+
 def loss_per_resistor(voltage_per_capacitor: float, resistance: float) -> float:
     """
     Calculate the power loss per resistor.
@@ -79,7 +99,40 @@ def loss_per_resistor(voltage_per_capacitor: float, resistance: float) -> float:
     else:
         return voltage_per_capacitor ** 2 / resistance
 
+def select_resistor_area_volume(power_loss: float, ambient_temperature: float,
+                                r_df: pd.DataFrame) -> pd.Series[float]:
+    """
+    Select the resistor area and volume for a given resistor power dissipation.
+
+    :param power_loss: resistor power loss in W
+    :type power_loss: float
+    :param ambient_temperature: ambient temperature in °C
+    :type ambient_temperature: float
+    :param r_df: resistor database
+    :type r_df: pd.Dataframe
+    :return: area, volume
+    """
+    if power_loss == 0:
+        area = 0.0
+        volume = 0.0
+    else:
+        # interpolate power due to ambient temperature
+        r_df["power_rating_at_ambient_temperature"] = r_df.apply(lambda x: np.interp(
+            ambient_temperature, [-40, 40, 70], [x["power_40_degree"], x["power_40_degree"], x["power_70_degree"]]), axis=1)
+
+        # look for the closest higher temperature
+        higher_rated_power = look_for_closest_higher_power(power_loss, r_df["power_rating_at_ambient_temperature"].to_list())
+
+        # select resistor area and volume
+        area = r_df.loc[r_df["power_rating_at_ambient_temperature"] == higher_rated_power]["area"].values[0]
+        volume = r_df.loc[r_df["power_rating_at_ambient_temperature"] == higher_rated_power]["volume"].values[0]
+    return pd.Series([area, volume])
+
 
 if __name__ == "__main__":
     r_closest = look_for_closest_smaller_resistance(r_max=105, resistor_list=[80, 90, 100, 110, 120])
     print(f"{r_closest=}")
+    resistor_df = load_resistors("ac")
+    [area, volume] = select_resistor_area_volume(2.5, 70, resistor_df)
+    print(f"{area=}")
+    print(f"{volume=}")
