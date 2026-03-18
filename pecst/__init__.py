@@ -9,6 +9,7 @@ from pecst.cost_models import *
 from pecst.colors import *
 from pecst.filter import *
 from pecst.selection import select_capacitors as select_capacitors
+from pecst.visualize import *
 
 # capacitor specific types
 from pecst.film import *
