@@ -20,7 +20,7 @@ from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeM
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
 from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor, calc_leakage_currents
 from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency, calc_capacitance_factor_temperature
-from pecst.resistor.resistors import (generate_resistor_list, calculate_r_parallel_max, look_for_closest_smaller_resistance, loss_per_resistor,
+from pecst.resistor.resistors import (generate_resistor_list, calculate_r_balancing_max, look_for_closest_smaller_resistance, loss_per_resistor,
                                       select_resistor_area_volume, calculate_r_max_discharge)
 from pecst.resistor.read_resistor_database import load_resistors
 
@@ -224,7 +224,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                 rated_capacitance=x["capacitance"], rated_voltage=x["v_r_V"]), axis=1)
 
             # maximum parallel resistor for balancing
-            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_parallel_max(
+            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_balancing_max(
                 x["5min_leakage_current_per_capacitor"], x["in_parallel_needed"], x["in_series_needed"], c_requirements.v_dc_for_op_max_voltage, x["v_r_V"]),
                 axis=1)
             # maximum parallel resistance for discharging the DC-link below 50 V within 3 minutes
