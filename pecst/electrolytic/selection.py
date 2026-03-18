@@ -243,8 +243,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                 voltage_per_capacitor=c_requirements.v_dc_for_op_max_voltage / x["in_series_needed"], resistance=x["r_parallel"]), axis=1)
 
             # loss calculation for all capacitors including balancing resistors
-            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
-                c_db["in_series_needed"] * c_db["loss_per_resistor"]
+            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
             # load resistor database
             r_df = load_resistors("ac")
@@ -254,13 +253,16 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                 x["loss_per_resistor"], c_requirements.temperature_ambient, r), axis=1)
 
             # calculate minimum required PCB area
-            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
-                c_db["in_series_needed"] * c_db["area_per_resistor"]
+            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
             # volume calculation
             logger.debug("Volume calculation.")
-            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"] + \
-                c_db["in_series_needed"] * c_db["volume_per_resistor"]
+            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+
+            if c_requirements.balancing_discharging_resistors:
+                c_db["volume_total"] += c_db["in_series_needed"] * c_db["volume_per_resistor"]
+                c_db["area_total"] += c_db["in_series_needed"] * c_db["area_per_resistor"]
+                c_db["power_loss_total"] += c_db["in_series_needed"] * c_db["loss_per_resistor"]
 
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
@@ -285,6 +287,7 @@ if __name__ == "__main__":
         maximum_number_series_capacitors=8,
         capacitor_tolerance_percent=CapacitanceTolerance.TenPercent,
         lifetime_h=29_000,
+        balancing_discharging_resistors=True,
         results_directory=os.path.dirname(os.path.abspath(__file__))
     )
 

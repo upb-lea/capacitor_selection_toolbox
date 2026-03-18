@@ -29,6 +29,7 @@ capacitor_requirements = pecst.CapacitorRequirements(
     maximum_number_series_capacitors=8,
     capacitor_tolerance_percent=pecst.CapacitanceTolerance.TenPercent,
     lifetime_h=30_000,
+    balancing_discharging_resistors=False,
     results_directory=os.path.dirname(os.path.abspath(__file__))
 )
 

@@ -36,6 +36,7 @@ class CapacitorRequirements:
     maximum_number_series_capacitors: int
     capacitor_tolerance_percent: CapacitanceTolerance
     lifetime_h: float
+    balancing_discharging_resistors: bool
     results_directory: str
 
 @dataclass
