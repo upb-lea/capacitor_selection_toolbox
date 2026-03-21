@@ -10,10 +10,6 @@ import numpy as np
 # own libraries
 import pecst.constants as const
 
-# def read_leakage_current(operating_voltage: float, temperature_ambient: float) -> float:
-#     leakage_current = 1
-#     return leakage_current
-
 def read_capacitor_frequency_dependent_limits(order_number: str) -> pd.DataFrame:
     """
     Read the frequency-dependent limits from csv file to a pandas data frame.
@@ -71,3 +67,11 @@ def power_loss_film_capacitor(order_number: str, frequency_list: list[float], cu
         esr_losses += esr * 0.5 * (current_amplitude_list[count_frequency] / number_parallel_capacitors) ** 2
 
     return esr_losses
+
+if __name__ == "__main__":
+    loss = power_loss_film_capacitor(order_number="B32714P0105K000", frequency_list=[138000], current_amplitude_list=[np.sqrt(2)*3],
+                                  number_parallel_capacitors=1)
+    print(f"{loss=}")
+    loss = power_loss_film_capacitor(order_number="B32714P6255K000", frequency_list=[86000], current_amplitude_list=[np.sqrt(2)*3],
+                                  number_parallel_capacitors=1)
+    print(f"{loss=}")
