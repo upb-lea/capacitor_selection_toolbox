@@ -23,6 +23,7 @@ from pecst.electrolytic.capacitance_change import calc_capacitance_factor_freque
 from pecst.resistor.resistors import (generate_resistor_list, calculate_r_balancing_max, look_for_closest_smaller_resistance, loss_per_resistor,
                                       select_resistor_area_volume, calculate_r_max_discharge)
 from pecst.resistor.read_resistor_database import load_resistors
+from pecst.cost_models import cost_electrolytic_capacitor
 
 logger = logging.getLogger(__name__)
 
@@ -258,6 +259,10 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             # volume calculation
             logger.debug("Volume calculation.")
             c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+
+            # cost calculation
+            c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
+                           c_db.apply(lambda x: cost_electrolytic_capacitor(x["v_r_V"], x["capacitance"]), axis=1)
 
             if c_requirements.balancing_discharging_resistors:
                 c_db["volume_total"] += c_db["in_series_needed"] * c_db["volume_per_resistor"]
