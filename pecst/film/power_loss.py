@@ -68,10 +68,11 @@ def power_loss_film_capacitor(order_number: str, frequency_list: list[float], cu
 
     return esr_losses
 
+
 if __name__ == "__main__":
     loss = power_loss_film_capacitor(order_number="B32714P0105K000", frequency_list=[138000], current_amplitude_list=[np.sqrt(2)*3],
-                                  number_parallel_capacitors=1)
+                                     number_parallel_capacitors=1)
     print(f"{loss=}")
     loss = power_loss_film_capacitor(order_number="B32714P6255K000", frequency_list=[86000], current_amplitude_list=[np.sqrt(2)*3],
-                                  number_parallel_capacitors=1)
+                                     number_parallel_capacitors=1)
     print(f"{loss=}")

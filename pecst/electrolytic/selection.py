@@ -262,7 +262,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
 
             # cost calculation
             c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
-                           c_db.apply(lambda x: cost_electrolytic_capacitor(x["v_r_V"], x["capacitance"]), axis=1)
+                c_db.apply(lambda x: cost_electrolytic_capacitor(x["v_r_V"], x["capacitance"]), axis=1)
 
             if c_requirements.balancing_discharging_resistors:
                 c_db["volume_total"] += c_db["in_series_needed"] * c_db["volume_per_resistor"]
