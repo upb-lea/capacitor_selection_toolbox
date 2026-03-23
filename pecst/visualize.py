@@ -2,7 +2,7 @@
 
 # 3rd party libraries
 import pandas as pd
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt  # type: ignore
 
 # own libraries
 
