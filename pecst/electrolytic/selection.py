@@ -20,9 +20,10 @@ from pecst.cst_dataclasses import CapacitorType, CapacitanceTolerance, LifetimeM
 from pecst.electrolytic.current_capability import parallel_electrolytic_capacitors_lifetime_current_capability
 from pecst.electrolytic.power_loss import power_loss_per_electrolytic_capacitor, calc_leakage_currents
 from pecst.electrolytic.capacitance_change import calc_capacitance_factor_frequency, calc_capacitance_factor_temperature
-from pecst.resistor.resistors import (generate_resistor_list, calculate_r_parallel_max, look_for_closest_smaller_resistance, loss_per_resistor,
-                                      select_resistor_area_volume)
+from pecst.resistor.resistors import (generate_resistor_list, calculate_r_balancing_max, look_for_closest_smaller_resistance, loss_per_resistor,
+                                      select_resistor_area_volume, calculate_r_max_discharge)
 from pecst.resistor.read_resistor_database import load_resistors
+from pecst.cost_models import cost_electrolytic_capacitor
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
     path = pathlib.Path(__file__)
     capacitor_series_values_path = pathlib.PurePath(path.parents[1], const.ELECTROLYTIC_CAPACITOR_DATA_DIRECTORY,
                                                     f"{const.ELECTROLYTIC_CAPACITOR_SERIES_VALUES}.csv")
-    series_values = pd.read_csv(capacitor_series_values_path, delimiter=';', decimal=',')
+    series_values = pd.read_csv(capacitor_series_values_path, delimiter=',', decimal='.')
 
     for capacitor_series_name in const.ELECTROLYTIC_CAPACITOR_SERIES_NAME_LIST:
         logger.info(f"Capacitor capacitor_series_name: {capacitor_series_name}")
@@ -223,9 +224,18 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
             c_db[["5min_leakage_current_per_capacitor", "permanent_leakage_current_per_capacitor"]] = c_db.apply(lambda x: calc_leakage_currents(
                 rated_capacitance=x["capacitance"], rated_voltage=x["v_r_V"]), axis=1)
 
-            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_parallel_max(
+            # maximum parallel resistor for balancing
+            c_db["r_parallel_max"] = c_db.apply(lambda x: calculate_r_balancing_max(
                 x["5min_leakage_current_per_capacitor"], x["in_parallel_needed"], x["in_series_needed"], c_requirements.v_dc_for_op_max_voltage, x["v_r_V"]),
                 axis=1)
+            # maximum parallel resistance for discharging the DC-link below 50 V within 3 minutes
+            c_db["r_parallel_max_discharge"] = c_db.apply(lambda x: calculate_r_max_discharge(
+                v_dc=c_requirements.v_dc_for_op_max_voltage, n_parallel=x["in_parallel_needed"], n_series=x["in_series_needed"], c=x["capacitance"]), axis=1)
+
+            # use the lower resistance value for balancing vs. discharging
+            index_discharging = c_db["r_parallel_max_discharge"] < c_db["r_parallel_max"]
+            c_db.loc[index_discharging, "r_parallel_max"] = c_db.loc[index_discharging, "r_parallel_max_discharge"]
+            c_db = c_db.drop(columns=["r_parallel_max_discharge"])
 
             e12_resistor_list = generate_resistor_list(const.E12_BASIC_LIST, [0, 1, 2, 3, 4, 5])
             c_db["r_parallel"] = c_db.apply(lambda x, r_list=e12_resistor_list: look_for_closest_smaller_resistance(x["r_parallel_max"], r_list), axis=1)
@@ -234,8 +244,7 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                 voltage_per_capacitor=c_requirements.v_dc_for_op_max_voltage / x["in_series_needed"], resistance=x["r_parallel"]), axis=1)
 
             # loss calculation for all capacitors including balancing resistors
-            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
-                c_db["in_series_needed"] * c_db["loss_per_resistor"]
+            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
             # load resistor database
             r_df = load_resistors("ac")
@@ -245,13 +254,20 @@ def select_electrolytic_capacitors(c_requirements: CapacitorRequirements) -> tup
                 x["loss_per_resistor"], c_requirements.temperature_ambient, r), axis=1)
 
             # calculate minimum required PCB area
-            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"] + \
-                c_db["in_series_needed"] * c_db["area_per_resistor"]
+            c_db["area_total"] = c_db["area"] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
 
             # volume calculation
             logger.debug("Volume calculation.")
-            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"] + \
-                c_db["in_series_needed"] * c_db["volume_per_resistor"]
+            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+
+            # cost calculation
+            c_db["cost"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * \
+                c_db.apply(lambda x: cost_electrolytic_capacitor(x["v_r_V"], x["capacitance"]), axis=1)
+
+            if c_requirements.balancing_discharging_resistors:
+                c_db["volume_total"] += c_db["in_series_needed"] * c_db["volume_per_resistor"]
+                c_db["area_total"] += c_db["in_series_needed"] * c_db["area_per_resistor"]
+                c_db["power_loss_total"] += c_db["in_series_needed"] * c_db["loss_per_resistor"]
 
         if not os.path.exists(c_requirements.results_directory):
             os.makedirs(c_requirements.results_directory)
@@ -276,6 +292,7 @@ if __name__ == "__main__":
         maximum_number_series_capacitors=8,
         capacitor_tolerance_percent=CapacitanceTolerance.TenPercent,
         lifetime_h=29_000,
+        balancing_discharging_resistors=True,
         results_directory=os.path.dirname(os.path.abspath(__file__))
     )
 

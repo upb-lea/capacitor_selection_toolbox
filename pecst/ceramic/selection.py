@@ -176,6 +176,7 @@ if __name__ == "__main__":
         maximum_number_series_capacitors=10,
         capacitor_tolerance_percent=CapacitanceTolerance.TenPercent,
         lifetime_h=30_000,
+        balancing_discharging_resistors=False,
         results_directory=os.path.dirname(os.path.abspath(__file__))
     )
 

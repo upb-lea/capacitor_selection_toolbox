@@ -24,10 +24,10 @@ def generate_resistor_list(e_series_basic_list, potency_list):
             e_series_resistor_list.append(resistor_basic_value * 10 ** potency)
     return e_series_resistor_list
 
-def calculate_r_parallel_max(leakage_current_per_capacitor_5min: float, parallel_capacitors: int, series_capacitors: int,
-                             dc_link_voltage: float, rated_voltage: float) -> float:
+def calculate_r_balancing_max(leakage_current_per_capacitor_5min: float, parallel_capacitors: int, series_capacitors: int,
+                              dc_link_voltage: float, rated_voltage: float) -> float:
     """
-    Calculate the maximum parallel resistance allowed to make sure that the resistor current is 10 times higher than the total leakage current.
+    Calculate the maximum parallel balancing resistance allowed to make sure that the resistor current is enough due to the vishay application note.
 
     :param leakage_current_per_capacitor_5min: leakage current per capacitor after 5 minutes in A
     :type leakage_current_per_capacitor_5min: float
@@ -41,11 +41,8 @@ def calculate_r_parallel_max(leakage_current_per_capacitor_5min: float, parallel
     :type dc_link_voltage: float
     :return: maximum value of parallel resistance
     """
-    if series_capacitors == 1:
-        return np.nan
-    else:
-        resistance = (series_capacitors * rated_voltage - dc_link_voltage) / (leakage_current_per_capacitor_5min * parallel_capacitors)
-        return resistance
+    resistance = (series_capacitors * rated_voltage - dc_link_voltage) / (leakage_current_per_capacitor_5min * parallel_capacitors)
+    return resistance
 
 
 def look_for_closest_smaller_resistance(r_max: float, resistor_list: list) -> float:
@@ -127,6 +124,30 @@ def select_resistor_area_volume(power_loss: float, ambient_temperature: float,
         area = r_df.loc[r_df["power_rating_at_ambient_temperature"] == higher_rated_power]["area"].values[0]
         volume = r_df.loc[r_df["power_rating_at_ambient_temperature"] == higher_rated_power]["volume"].values[0]
     return pd.Series([area, volume])
+
+def calculate_r_max_discharge(v_dc: float, n_parallel: int, n_series: int, c: float) -> float:
+    """
+    Discharge the DC link within 3 minutes below 50 volts. Calculate the maximum allowed resistance.
+
+    :param v_dc: DC link voltage in V
+    :type v_dc: float
+    :param n_parallel: number of parallel capacitors
+    :type n_parallel: int
+    :param n_series: number of series capacitors
+    :type n_series: int
+    :param c: capacitor capacitance in F
+    :type c: float
+    :return:
+    """
+    # constants
+    t_discharge = 180
+    v_safety = 50
+
+    v_start = v_dc / n_series
+    v_end = v_safety / n_series
+    r_parallel: float = -t_discharge / (n_parallel * c * np.log(v_end / v_start))
+
+    return r_parallel
 
 
 if __name__ == "__main__":
