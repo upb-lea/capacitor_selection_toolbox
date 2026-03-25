@@ -97,7 +97,7 @@ def loss_per_resistor(voltage_per_capacitor: float, resistance: float) -> float:
         return voltage_per_capacitor ** 2 / resistance
 
 def select_resistor_area_volume(power_loss: float, ambient_temperature: float,
-                                r_df: pd.DataFrame) -> pd.Series[float]:
+                                r_df: pd.DataFrame) -> "pd.Series[float]":
     """
     Select the resistor area and volume for a given resistor power dissipation.
 
