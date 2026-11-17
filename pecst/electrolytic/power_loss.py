@@ -9,7 +9,7 @@ import pandas as pd
 # own libraries
 from pecst.cst_dataclasses import EsrOverTemperature, EsrOverFrequency
 
-def calc_leakage_currents(rated_capacitance: float, rated_voltage: float) -> pd.Series[float]:
+def calc_leakage_currents(rated_capacitance: float, rated_voltage: float) -> "pd.Series[float]":
     """
     Get the 5 minutes leakage current and the permanent leakage current depending on the capacitance and on the rated voltage.
 
