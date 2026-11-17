@@ -134,6 +134,7 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
             voltage_rating=x["V_R_85degree"], lt_dto_list=lt_dto_list), axis=1)
 
         c_db = c_db.drop(c_db[pd.isnull(c_db["voltage_lifetime"])].index)
+        logger.debug(f"{len(c_db)} capacitors left.")
 
         c_db["factor_lifetime"] = c_db["voltage_lifetime"] / c_db["V_R_85degree"]
 
@@ -144,12 +145,16 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
                                                                                      (1 - c_requirements.voltage_safety_margin_percentage / 100)))
         # drop series connection capacitors more than specified
         c_db = c_db.drop(c_db[c_db["in_series_needed"] > c_requirements.maximum_number_series_capacitors].index)
+        logger.debug(f"{len(c_db)} capacitors left.")
 
         if len(c_db["capacitance"]) == 0:
             # all capacitors are sorted out due to lifetime ratings. Add empty keys
             c_db["volume_total"] = np.nan
             c_db["power_loss_total"] = np.nan
         else:
+            # set self-heating required parallel capacitors initially to 1
+            c_db["in_parallel_needed_self_heating"] = 0
+
             # capacitance: calculate the number of parallel capacitors needed to meet the capacitance requirement
             logger.debug("Calculate in parallel needed capacitors due to capacitance.")
             c_db["in_parallel_needed"] = np.ceil(
@@ -175,37 +180,61 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
             index_ripple_current = c_db["parallel_current_capacitors_needed"] > c_db["in_parallel_needed"]
             c_db.loc[index_ripple_current, "in_parallel_needed"] = c_db.loc[index_ripple_current, "parallel_current_capacitors_needed"]
             c_db = c_db.drop(columns=["parallel_current_capacitors_needed", "in_parallel_needed_dvdt"])
+            logger.debug(f"{len(c_db)} capacitors left.")
 
-            # volume calculation
-            logger.debug("Volume calculation.")
-            c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
+            first_iteration = True
+            loop_counter = 0
 
-            # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
-            # there must be a difference in the frequency of a given factor (typically 10)!
-            # ESL_total = L * n_serial / n_parallel
-            # C_total = C * n_parallel / n_serial
-            # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
-            logger.debug("Resonance frequency filtering.")
-            c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
-            c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR].index)
+            while first_iteration or np.any(c_db["in_parallel_needed_self_heating"] > c_db["in_parallel_needed"]):
+                first_iteration = False
+                loop_counter = loop_counter + 1
+                # check if number of capacitors needed due to self-heating is higher than in parallel needed capacitors.
+                mask = c_db["in_parallel_needed_self_heating"] > c_db["in_parallel_needed"]
+                c_db.loc[mask, "in_parallel_needed"] = c_db.loc[mask, "in_parallel_needed_self_heating"]
 
-            # loss calculation per capacitor
-            logger.debug("Power loss estimation by ESR.")
-            c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
-                                                                                              x["in_parallel_needed"]), axis=1)
-            # loss calculation for all capacitors
-            c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+                # volume calculation
+                logger.debug("Volume calculation.")
+                c_db["volume_total"] = c_db["in_parallel_needed"] * c_db["in_series_needed"] * c_db["volume"]
 
-            # self heating calculation
-            # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
-            logger.debug("Self heating.")
-            c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
-                c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
-            c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
-            c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+                # filter by resonance frequency: drop capacitors with resonance frequency lower than the current 1st harmonic frequency.
+                # there must be a difference in the frequency of a given factor (typically 10)!
+                # ESL_total = L * n_serial / n_parallel
+                # C_total = C * n_parallel / n_serial
+                # ESL_total * C_total = L * C !!! To estimate the resonance frequency, it does not matter how the series and parallel connection is.
+                logger.debug("Resonance frequency filtering.")
+                c_db["f_res"] = 1 / (2 * np.pi * np.sqrt(c_db["capacitance"] * c_db["ESL_in_H"]))
+                c_db = c_db.drop(c_db[c_db["f_res"] < frequency_list[0] * const.FILM_CAPACITOR_RESONANCE_FREQUENCY_FACTOR].index)
+                logger.debug(f"{len(c_db)} capacitors left.")
 
-            # drop too high self-heated capacitors
+                # loss calculation per capacitor
+                logger.debug("Power loss estimation by ESR.")
+                c_db["power_loss_per_capacitor"] = c_db.apply(lambda x: power_loss_film_capacitor(x["ordering code"], frequency_list, current_amplitude_list,
+                                                                                                  x["in_parallel_needed"]), axis=1)
+                # loss calculation for all capacitors
+                c_db.loc[:, 'power_loss_total'] = c_db.loc[:, 'power_loss_per_capacitor'] * c_db["in_parallel_needed"] * c_db["in_series_needed"]
+
+                # self heating calculation
+                # g_in_W_degreeCelsius is the equivalent heat coefficient according to the data sheet
+                logger.debug("Self heating.")
+                c_db['g_in_W_degreeCelsius'] = c_db.apply(lambda x, c_th=c_thermal: get_equivalent_heat_coefficient(
+                    c_th, x["width_in_m"], x["length_in_m"], x["height_in_m"]), axis=1)
+                c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
+                logger.debug(f"{len(c_db)} capacitors left.")
+
+                c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+
+                # increase number of parallel capacitors needed for self-heating
+                c_db["in_parallel_needed_self_heating"] = c_db.apply(
+                    lambda x, d_t_max=delta_temperature_max:
+                    x["in_parallel_needed"] + 1 if x["delta_temperature"] > d_t_max else x["in_parallel_needed"], axis=1)
+                # after this step, recalculate the number of capacitors by starting the loop again.
+
+            logger.debug(f"{loop_counter=}")
+
+            # after the whole loop, there should be no drop of capacitors due to too high self-heating
+            logger.debug(f"End of loop: {len(c_db)} capacitors left.")
             c_db = c_db.drop(c_db[c_db["delta_temperature"] > delta_temperature_max].index)
+            logger.debug(f"After-loop drop should be not change: {len(c_db)} capacitors left.")
 
             # calculate component cost according to cost models
             logger.debug("Calculate component cost.")
