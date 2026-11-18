@@ -97,9 +97,11 @@ def load_electrolytic_capacitors(capacitor_series_name: str) -> tuple[
     # capacitance over temperature
     c_vs_temperature_dto_list: list[CapacitanceOverTemperature] = []
     c_vs_temperature_dto: CapacitanceOverTemperature
-    capacitance_vs_temperature_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(f"{capacitor_series_name}_c_vs_f_*")
+    capacitance_vs_temperature_data_files = pathlib.Path(electrolytic_capacitor_curves_path).glob(
+        f"{capacitor_series_name}_c_vs_temperature_*")
     for c_vs_temperature_data_file in capacitance_vs_temperature_data_files:
-        voltage_list = str(c_vs_temperature_data_file.stem).replace(f"{capacitor_series_name}_c_vs_f_", "").split("_")
+        voltage_list = str(c_vs_temperature_data_file.stem).replace(
+            f"{capacitor_series_name}_c_vs_temperature_", "").split("_")
         for voltage_str in voltage_list:
             c_vs_temperature_dto = CapacitanceOverTemperature(voltage=float(voltage_str.replace("V", "")),
                                                               capacitance_vs_temperature=pd.read_csv(
