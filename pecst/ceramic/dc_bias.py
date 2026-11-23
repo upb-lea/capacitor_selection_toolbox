@@ -74,7 +74,7 @@ def dc_bias_series_parallel_connection(order_number: str, capacitance: float, dc
         for number_series_capacitors in series_connection:
             # calculate the capacitance at the voltage (DC-bias)
             dc_voltage_per_capacitor = dc_link_voltage / number_series_capacitors
-            capacitance_change_percent_at_voltage = np.interp(dc_voltage_per_capacitor, dc_bias_df["voltage"], dc_bias_df["change_percent"])
+            capacitance_change_percent_at_voltage = np.interp(dc_voltage_per_capacitor, dc_bias_df["voltage"], np.abs(dc_bias_df["change_percent"]))
             capacitance_at_voltage = capacitance * (1 - capacitance_change_percent_at_voltage / 100)
 
             in_parallel_needed = np.ceil(c_min_required * number_series_capacitors / capacitance_at_voltage)
