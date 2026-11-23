@@ -91,7 +91,7 @@ def calculate_from_requirements(capacitor_requirements: CapacitorRequirements, d
     return CalculatedRequirementsValues(
         requirement_c_min=c_mid,
         i_rms=i_rms,
-        i_max=np.max(capacitor_requirements.current_waveform_for_op_max_current[1])
+        i_abs_max=np.max(np.abs(capacitor_requirements.current_waveform_for_op_max_current[1]))
     )
 
 

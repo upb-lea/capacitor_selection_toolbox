@@ -163,7 +163,7 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
 
             # dv/dt: calculate the number of parallel capacitors needed to meet the dv/dt requirement
             logger.debug("Calculate in parallel needed capacitors due to dv/dt limit.")
-            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df, i_peak=calculated_boundaries.i_max: calc_parallel_capacitors_dvdt(
+            c_db["in_parallel_needed_dvdt"] = c_db.apply(lambda x, dvdt_df=dvdt_df, i_peak=calculated_boundaries.i_abs_max: calc_parallel_capacitors_dvdt(
                 x["capacitance"], x["V_R_85degree"], i_peak, dvdt_df, x["ordering code"], calculated_boundaries), axis=1)
 
             # current: calculate the number of parallel capacitors needed to meet the current requirement
