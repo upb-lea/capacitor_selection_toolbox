@@ -108,7 +108,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
 
         df = pd.DataFrame({"ordering code": type_label, "capacitance": [capacitance], "voltage": [voltage], "area": area, "footprint_area": footprint_area,
                            "tolerance": tolerance})
-        ceramic_df = pd.concat([ceramic_df, df], axis=0)
+        ceramic_df = pd.concat([ceramic_df, df], axis=0, ignore_index=True)
 
     # sort out all capacitors where to many series capacitors are required (more than maximum in series allowed)
     ceramic_df["number_min_capacitors_in_series"] = np.ceil(
