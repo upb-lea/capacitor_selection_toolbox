@@ -30,7 +30,7 @@ def load_resistors(resistor_series_name: str) -> pd.DataFrame:
     database_path = pathlib.PurePath(resistor_series_path, f"{resistor_series_name}.csv")
     r_df = pd.read_csv(database_path, sep=',', decimal='.')
 
-    # transfer the datasheet given units to SI units
+    # calculate area and volume. Given diameter and length is already in SI units.
     r_df['area'] = r_df["diameter"].astype(float) * r_df["length"].astype(float)
     r_df['volume'] = (r_df["diameter"].astype(float) / 2) ** 2 * np.pi * r_df["length"].astype(float)
 

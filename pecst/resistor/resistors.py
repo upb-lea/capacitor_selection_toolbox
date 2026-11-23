@@ -115,7 +115,8 @@ def select_resistor_area_volume(power_loss: float, ambient_temperature: float,
     else:
         # interpolate power due to ambient temperature
         r_df["power_rating_at_ambient_temperature"] = r_df.apply(lambda x: np.interp(
-            ambient_temperature, [-40, 40, 70], [x["power_40_degree"], x["power_40_degree"], x["power_70_degree"]]), axis=1)
+            ambient_temperature, [-40, 40, 70, 200],
+            [x["power_40_degree"], x["power_40_degree"], x["power_70_degree"], x["power_40_degree"] * 0.3]), axis=1)
 
         # look for the closest higher temperature
         higher_rated_power = look_for_closest_higher_power(power_loss, r_df["power_rating_at_ambient_temperature"].to_list())
