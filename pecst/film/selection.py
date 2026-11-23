@@ -221,7 +221,7 @@ def select_film_capacitors(c_requirements: CapacitorRequirements) -> tuple[list[
                 c_db = c_db.drop(c_db[np.isnan(c_db["g_in_W_degreeCelsius"])].index)
                 logger.debug(f"{len(c_db)} capacitors left.")
 
-                c_db["delta_temperature"] = c_db['power_loss_total'] / c_db['g_in_W_degreeCelsius']
+                c_db["delta_temperature"] = c_db['power_loss_per_capacitor'] / c_db['g_in_W_degreeCelsius']
 
                 # increase number of parallel capacitors needed for self-heating
                 c_db["in_parallel_needed_self_heating"] = c_db.apply(
