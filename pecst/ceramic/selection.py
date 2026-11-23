@@ -86,6 +86,7 @@ def select_ceramic_capacitors(c_requirements: CapacitorRequirements) -> tuple[li
     """
     # calculate minimum required capacitance and RMS current
     logger.info("Calculate requirements and values from given input data.")
+    logger.warning("The user-given capacitor tolerance for ceramic capacitors is ignored. It will be extracted from the product code.")
     calculated_boundaries = calculate_from_requirements(c_requirements)
 
     logger.info("FFT")
