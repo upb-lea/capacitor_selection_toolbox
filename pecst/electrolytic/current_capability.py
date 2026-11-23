@@ -40,6 +40,8 @@ def parallel_electrolytic_capacitors_lifetime_current_capability(voltage: float,
     for ripple_current_multiplier_dto in ripple_current_multiplier_dto_list:
         if ripple_current_multiplier_dto.voltage == voltage:
             break
+    else:
+        raise ValueError(f"No ripple current multiplier for voltage {voltage} found.")
 
     # interpolate current multipliers
     multiplier_list = np.interp(frequency_list, ripple_current_multiplier_dto.current_multiplier_vs_frequency["frequency"],
