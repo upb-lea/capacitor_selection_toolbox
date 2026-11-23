@@ -244,4 +244,7 @@ def fft(period_vector_t_i: np.ndarray, sample_factor: int = 1000, plot: str = 'n
             plt.savefig(figure_directory, bbox_inches="tight")
         plt.show()
 
+    if 0 in f_out:
+        raise ValueError("DC offset in Ripple current not allowed!")
+
     return np.array([f_out, x_out, phi_rad_out])
